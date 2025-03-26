@@ -1,26 +1,19 @@
 package com.example.routes
 
-import com.example.types.LogFormat
-import com.example.types.Request
-import com.example.types.Response
+import com.example.common.utils.pathWithLogging
+import com.example.common.utils.postWithLogging
+import com.example.common.utils.queryWithLogging
 import com.example.types.Sample
-import com.fasterxml.jackson.databind.ObjectMapper
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.request.host
-import io.ktor.server.request.httpMethod
-import io.ktor.server.request.port
 import io.ktor.server.request.receive
-import io.ktor.server.request.uri
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.util.toMap
-import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import java.time.LocalDateTime
 
-val jsonLogger = LoggerFactory.getLogger("JsonLogger")
+
 
 fun Route.sampleRouter() {
     get("/sample") {
@@ -32,39 +25,23 @@ fun Route.sampleRouter() {
         call.respond(sample)
     }
 
-    postWithLogging<Sample, Sample>("/logger") {req ->
-        req
+
+    postWithLogging<Sample>("/sample-post") { req ->
+        println("Name: ${req.email}")
+        call.respond(HttpStatusCode.Created, "test success")
+    }
+
+    queryWithLogging("/sample-query") {
+        val name = call.request.queryParameters["name"]
+        println("Name parameter: $name") // name 파라미터를 콘솔에 출력
+        call.respond(HttpStatusCode.OK, "Query processed")
+    }
+
+    pathWithLogging("/sample-path/{id}") {
+        val id = call.parameters["id"]
+        println("User ID: $id")
+
+        call.respond(HttpStatusCode.OK, "sucess")
     }
 }
 
-inline fun <reified T : Any, reified R : Any> Route.postWithLogging(
-    path: String,
-    crossinline block: suspend (T) -> R
-) {
-    post(path) {
-        val request = call.receive<T>()
-        val response = block(request)
-
-        val logFormat = LogFormat(
-            requestId = MDC.get("REQUEST_ID"),
-            host = call.request.host(),
-            port = call.request.port(),
-            method = call.request.httpMethod.value,
-            url = call.request.uri,
-            serviceName = "ktor-exposed-sample",
-            request = Request(
-                headers = call.request.headers.toMap(),
-                body = request
-            ),
-            response = Response(
-                status = call.response.status()?.value ?: 500,
-                headers = call.response.headers.allValues().toMap(),
-                body = response
-            ),
-            params = call.request.queryParameters.toMap()
-        )
-
-        jsonLogger.info(logFormat.toString())
-        call.respond(response)
-    }
-}

@@ -1,24 +1,13 @@
 package com.example.types
 
-data class LogFormat(
+data class LogFormat<T>(
     val requestId: String?,
-    val host: String,
-    val port: Int,
     val method: String,
     val url: String,
-    val serviceName: String,
-    val request: Request,
-    val response: Response,
-    val params: Map<String, List<String>>
+    val request: Request<T>,
 )
 
-data class Request(
+data class Request<T>(
     val headers: Map<String, List<String>>,
-    val body: Any?
-)
-
-data class Response(
-    val status: Int,
-    val headers: Map<String, List<String>>,
-    val body: Any?
+    val request: T?
 )
