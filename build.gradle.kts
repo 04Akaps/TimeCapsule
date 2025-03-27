@@ -35,6 +35,9 @@ dependencies {
     // Jackson Java Time 모듈 (LocalDateTime 처리)
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-serialization:$ktorVersion")
+
     testImplementation(kotlin("test"))
 }
 
