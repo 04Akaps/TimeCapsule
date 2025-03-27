@@ -40,7 +40,6 @@ fun Route.sampleRouter() {
     pathWithLogging("/sample-path/{id}") {
         val id = call.parameters["id"]
         println("User ID: $id")
-
         call.respond(HttpStatusCode.OK, "sucess")
     }
 }
