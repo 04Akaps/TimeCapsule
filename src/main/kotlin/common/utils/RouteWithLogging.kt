@@ -1,18 +1,18 @@
 package com.example.common.utils
 
-import com.example.common.exception.CustomException
+import com.example.common.binder.RequestBinder
 import com.example.types.LogFormat
 import com.example.types.Request
+import io.ktor.http.*
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.httpMethod
-import io.ktor.server.request.receive
 import io.ktor.server.request.uri
+import io.ktor.server.response.*
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
-import io.ktor.util.toMap
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
@@ -24,64 +24,62 @@ fun <T> logging(call: ApplicationCall, req: T?) {
         method = call.request.httpMethod.value,
         url = call.request.uri,
         request = Request(
-            headers = call.request.headers.toMap(),
             request = req
         ),
     )
 
     log.info(
-        "Request: [{}] {} {} headers={} body={}",
+        "Request: [{}] {} {} body={}",
         logFormat.requestId,
         logFormat.method,
         logFormat.url,
-        logFormat.request.headers,
         logFormat.request.request
     )
 }
 
-inline fun <reified T : Any> Route.postWithLogging(
+suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.handleBinding(
+    crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+) {
+    when (val result = RequestBinder.bindRequest<T>(call)) {
+        is RequestBinder.BindResult.Success -> {
+            try {
+                logging(call, result.data)
+                handler(result.data)
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "처리 중 오류가 발생했습니다: ${e.message}")
+                )
+            }
+        }
+        is RequestBinder.BindResult.Error -> {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf(
+                    "error" to "요청 데이터 바인딩 실패",
+                    "field" to result.fieldName,
+                    "message" to result.message
+                )
+            )
+        }
+    }
+}
+
+inline fun <reified T : Any> Route.postWithBinding(
     path: String,
     crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ) {
     post(path) {
-        try {
-            val requestBody = call.receive<T>()
-            logging(call, requestBody)
-            handler(requestBody)
-        } catch (e: Exception) {
-            log.error("Error processing POST request", e)
-            throw e
-        }
+        handleBinding(handler)
     }
 }
 
-inline fun Route.pathWithLogging(
+inline fun <reified T : Any> Route.getWithBinding(
     path: String,
-    crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.() -> Unit
+    crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ) {
     get(path) {
-        try {
-            val pathParams = call.parameters.entries().associate { it.key to it.value.firstOrNull() }
-            logging(call, pathParams)
-            handler()
-        } catch (e: Exception) {
-            log.error("Error processing PATH request", e)
-            throw e
-        }
+        handleBinding(handler)
     }
 }
 
-inline fun Route.queryWithLogging(
-    path: String,
-    crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.() -> Unit
-) {
-    get(path) {
-        try {
-            logging(call, call.request.queryParameters.toMap())
-            handler()
-        } catch (e: Exception) {
-            log.error("Error processing PATH request", e)
-            throw e
-        }
-    }
-}

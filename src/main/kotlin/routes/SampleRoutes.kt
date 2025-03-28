@@ -1,9 +1,7 @@
 package com.example.routes
 
-import com.example.common.utils.pathWithLogging
-import com.example.common.utils.postWithLogging
-import com.example.common.utils.queryWithLogging
-import com.example.types.Sample
+import com.example.common.utils.*
+import com.example.types.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
@@ -20,27 +18,20 @@ fun Route.sampleRouter() {
         call.respond(Sample("naver.com", LocalDateTime.now()))
     }
 
-    post("/sample") {
-        val sample = call.receive<Sample>()
-        call.respond(sample)
-    }
 
-
-    postWithLogging<Sample>("/sample-post") { req ->
+    postWithBinding<RequestBodyTest>("/sample-post") { req ->
         println("Name: ${req.email}")
-        call.respond(HttpStatusCode.Created, "test success")
+        call.respond(HttpStatusCode.Created, req)
     }
 
-    queryWithLogging("/sample-query") {
-        val name = call.request.queryParameters["name"]
-        println("Name parameter: $name") // name 파라미터를 콘솔에 출력
-        call.respond(HttpStatusCode.OK, "Query processed")
+    getWithBinding<RequestPathTest>("/sample-path/{id}/{name}") { req ->
+        println(req)
+        call.respond(HttpStatusCode.OK, req)
     }
 
-    pathWithLogging("/sample-path/{id}") {
-        val id = call.parameters["id"]
-        println("User ID: $id")
-        call.respond(HttpStatusCode.OK, "sucess")
+    getWithBinding<RequestQueryTest>("/sample-query") { req ->
+        println(req)
+        call.respond(HttpStatusCode.OK, req)
     }
 }
 

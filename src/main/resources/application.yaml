@@ -3,4 +3,4 @@ ktor:
     modules:
       - com.example.MainKt.module
   deployment:
-    port: 8080
+    port: 9090

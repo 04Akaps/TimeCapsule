@@ -14,6 +14,5 @@ data class LogFormat<T>(
 )
 
 data class Request<T>(
-    val headers: Map<String, List<String>>,
     val request: T?
 )
