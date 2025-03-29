@@ -13,8 +13,6 @@ import kotlin.reflect.full.memberProperties
 import io.ktor.server.request.*
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import sun.jvm.hotspot.HelloWorld.e
-import kotlin.text.get
 
 // 필드 바인딩 필드
 @Target(AnnotationTarget.PROPERTY)

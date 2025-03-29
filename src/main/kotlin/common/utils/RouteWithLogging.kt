@@ -2,6 +2,8 @@ package com.example.common.utils
 
 import com.example.common.binder.RequestBinder
 import com.example.common.binder.RequestSource
+import com.example.common.exception.CustomException
+import com.example.types.GlobalResponse
 import com.example.types.LogFormat
 import com.example.types.Request
 import io.ktor.http.*
@@ -54,20 +56,24 @@ suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.hand
             try {
                 logging(call, result.data)
                 handler(result.data)
-            } catch (e: Exception) {
+            } catch (e: CustomException) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    mapOf("error" to "처리 중 오류가 발생했습니다: ${e.message}")
+                    GlobalResponse<Any>(
+                        code = e.getCodeInterface().code,
+                        message = e.message ?: "Unknown error",
+                        data = null
+                    )
                 )
             }
         }
         is RequestBinder.BindResult.Error -> {
             call.respond(
                 HttpStatusCode.BadRequest,
-                mapOf(
-                    "error" to "요청 데이터 바인딩 실패",
-                    "field" to result.fieldName,
-                    "message" to result.message
+                GlobalResponse<Any>(
+                    code = -1,
+                    message = result.message,
+                    data = null
                 )
             )
         }
