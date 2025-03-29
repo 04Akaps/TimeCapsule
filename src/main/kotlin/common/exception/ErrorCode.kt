@@ -4,5 +4,6 @@ enum class ErrorCode(
     override val code : Int,
     override var message : String
 ) : CodeInterface {
-    FailedToLoggerInvoke(-100, "Failed to logger invoke"),
+    FAILED_TO_READ_BODY(-1, "failed to request body"),
+    NOT_SUPPORTED_REQUEST_TYPE(-2, "not supported request type"),
 }

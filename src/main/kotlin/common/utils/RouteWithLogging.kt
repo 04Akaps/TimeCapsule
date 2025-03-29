@@ -1,6 +1,7 @@
 package com.example.common.utils
 
 import com.example.common.binder.RequestBinder
+import com.example.common.binder.RequestSource
 import com.example.types.LogFormat
 import com.example.types.Request
 import io.ktor.http.*
@@ -38,9 +39,17 @@ fun <T> logging(call: ApplicationCall, req: T?) {
 }
 
 suspend inline fun <reified T : Any> PipelineContext<Unit, ApplicationCall>.handleBinding(
-    crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+    crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit,
+    requestSource: RequestSource,
 ) {
-    when (val result = RequestBinder.bindRequest<T>(call)) {
+
+    val result = if (requestSource == RequestSource.BODY) {
+        RequestBinder.postBindRequest<T>(call)
+    } else {
+        RequestBinder.bindRequest<T>(call)
+    }
+
+    when(result) {
         is RequestBinder.BindResult.Success -> {
             try {
                 logging(call, result.data)
@@ -70,7 +79,7 @@ inline fun <reified T : Any> Route.postWithBinding(
     crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ) {
     post(path) {
-        handleBinding(handler)
+        handleBinding(handler, RequestSource.BODY)
     }
 }
 
@@ -79,7 +88,7 @@ inline fun <reified T : Any> Route.getWithBinding(
     crossinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
 ) {
     get(path) {
-        handleBinding(handler)
+        handleBinding(handler, RequestSource.QUERY)
     }
 }
 
