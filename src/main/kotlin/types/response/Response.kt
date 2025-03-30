@@ -1,4 +1,4 @@
-package com.example.types
+package com.example.types.response
 
 class GlobalResponse<T>(
     val code: Int,

@@ -3,9 +3,7 @@ package com.example.common.utils
 import com.example.common.binder.RequestBinder
 import com.example.common.binder.RequestSource
 import com.example.common.exception.CustomException
-import com.example.types.GlobalResponse
-import com.example.types.LogFormat
-import com.example.types.Request
+import com.example.types.response.GlobalResponse
 import io.ktor.http.*
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -20,6 +18,17 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
 val log = LoggerFactory.getLogger("route-with-logging")
+
+data class LogFormat<T>(
+    val requestId: String?,
+    val method: String,
+    val url: String,
+    val request: Request<T>,
+)
+
+data class Request<T>(
+    val request: T?
+)
 
 fun <T> logging(call: ApplicationCall, req: T?) {
     val logFormat = LogFormat(

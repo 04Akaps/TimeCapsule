@@ -1,4 +1,4 @@
-package com.example.types
+package com.example.types.request
 
 import com.example.common.binder.RequestData
 import com.example.common.binder.RequestInfo
