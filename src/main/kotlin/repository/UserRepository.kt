@@ -12,13 +12,13 @@ import java.time.ZoneId
 
 class UserRepository {
 
-    suspend fun create(request: CreateNewAccountRequest) = DatabaseProvider.dbQuery {
+    suspend fun create(mail: String, hashedPassword : String) = DatabaseProvider.dbQuery {
         val id = UlidProvider.userId()
 
         Users.insert {
             it[Users.id] = id
-            it[email] = request.email
-            it[passwordHash] = request.password
+            it[email] = mail
+            it[passwordHash] = hashedPassword
         }
     }
 
