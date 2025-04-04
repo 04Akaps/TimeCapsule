@@ -34,6 +34,13 @@ class UserRepository {
             .singleOrNull()
     }
 
+    suspend fun existsByEmail(email: String): Boolean = DatabaseProvider.dbQuery {
+        Users.select { Users.email eq email }
+            .limit(1)
+            .count() > 0
+    }
+
+
     suspend fun updateLastLogin(id: String, loginTime: LocalDateTime): Boolean = DatabaseProvider.dbQuery {
         Users.update({ Users.id eq id }) {
             it[lastLogin] = loginTime.atZone(ZoneId.systemDefault()).toInstant()

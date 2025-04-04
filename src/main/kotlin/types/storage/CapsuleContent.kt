@@ -10,13 +10,13 @@ object CapsuleContents : Table() {
     val capsuleId = varchar("capsule_id", 100).references(TimeCapsules.id)
     val contentType = enumerationByName("content_type", 10, ContentType::class)
     val content = text("content").nullable()
-    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
+    val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)
 }
 
 enum class ContentType {
-    TEXT, IMAGE, VIDEO, AUDIO, FILE
+    TEXT, IMAGE, VIDEO, AUDIO
 }
 
 data class CapsuleContentStorage(

@@ -16,13 +16,3 @@ object Users : Table() {
 
     override val primaryKey = PrimaryKey(id)
 }
-
-data class UserStorage(
-    val id: String,
-    val email: String,
-    val passwordHash: String,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now(),
-    val lastLogin: LocalDateTime? = null,
-    val isActive: Boolean = true
-)

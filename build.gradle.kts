@@ -56,6 +56,12 @@ dependencies {
     implementation("io.insert-koin:koin-ktor:3.5.0")
     implementation("io.insert-koin:koin-logger-slf4j:3.5.0")
 
+    // auth 검증 커스텀
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+
+    // statusPage
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+
     testImplementation(kotlin("test"))
 }
 

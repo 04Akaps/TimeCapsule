@@ -8,11 +8,10 @@ import java.math.BigDecimal
 
 object TimeCapsules : Table() {
     val id = varchar("id", 100)
-    val creatorId = varchar("creator_id", 100).references(Users.id)
+    val creator_id = varchar("creator_id", 100).references(Users.id)
     val title = varchar("title", 100)
     val description = text("description").nullable()
-    val isPrivate = bool("is_private").default(true)
-    val creationDate = timestamp("creation_date").defaultExpression(CurrentTimestamp())
+    val creationDate = timestamp("creation_date")
     val scheduledOpenDate = timestamp("scheduled_open_date")
     val status = enumerationByName("status", 10, CapsuleStatus::class).default(CapsuleStatus.SEALED)
     val locationLat = decimal("location_lat", 10, 8).nullable()
@@ -24,16 +23,3 @@ object TimeCapsules : Table() {
 enum class CapsuleStatus {
     SEALED, OPENED
 }
-
-data class TimeCapsuleStorage(
-    val id: String,
-    val creatorId: String,
-    val title: String,
-    val description: String? = null,
-    val isPrivate: Boolean = true,
-    val creationDate: LocalDateTime = LocalDateTime.now(),
-    val scheduledOpenDate: LocalDateTime,
-    val status: CapsuleStatus = CapsuleStatus.SEALED,
-    val locationLat: BigDecimal? = null,
-    val locationLng: BigDecimal? = null
-)

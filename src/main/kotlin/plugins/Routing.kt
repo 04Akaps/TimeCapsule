@@ -1,6 +1,7 @@
 package com.example.plugins
 
 import com.example.routes.auth.route.v1AuthRoute
+import com.example.routes.capsule.route.v1CapsuleRoute
 import com.example.routes.sampleRouter
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -18,6 +19,7 @@ fun Application.configureRouting() {
         sampleRouter()
 
         route("/v1") {
+            v1CapsuleRoute()
             v1AuthRoute()
         }
     }
