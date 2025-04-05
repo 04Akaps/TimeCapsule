@@ -27,10 +27,6 @@ object PBFDK2Provider {
     }
 
     fun encrypt(password: String): String {
-        if (!::algorithm.isInitialized) {
-            TODO()
-        }
-
         val salt = ByteArray(saltLength).apply {
             SecureRandom().nextBytes(this)
         }
@@ -57,10 +53,6 @@ object PBFDK2Provider {
     }
 
     fun verify(storedHash: String, inputPassword: String): Boolean {
-        if (!::algorithm.isInitialized) {
-            TODO()
-        }
-
         val parts = storedHash.split(":")
         if (parts.size != 4) return false
 

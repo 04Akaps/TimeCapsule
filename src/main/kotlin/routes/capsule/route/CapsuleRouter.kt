@@ -4,6 +4,7 @@ import com.example.common.utils.getWithBinding
 import com.example.common.utils.postWithBinding
 import com.example.routes.capsule.service.CapsuleService
 import com.example.routes.capsule.types.CreateNewCapsuleRequest
+import com.example.security.Intercept
 import com.example.types.response.GlobalResponse
 import com.example.types.response.GlobalResponseProvider
 import com.example.types.storage.ContentType
@@ -17,22 +18,7 @@ fun Route.v1CapsuleRoute() {
     val service = get<CapsuleService>()
 
 
-    intercept(ApplicationCallPipeline.Call) {
-        val email = call.request.headers["EmailInfo"].toString()
-
-        if (email.isBlank()) {
-            call.respond(HttpStatusCode.Unauthorized, GlobalResponseProvider.authFailed(HttpStatusCode.Unauthorized.value, "empty email address", email))
-            return@intercept finish()
-        }
-
-
-        if (service.verifyEmail(email)) {
-            call.respond(HttpStatusCode.BadRequest, GlobalResponseProvider.authFailed(HttpStatusCode.BadRequest.value, "invalid email address", email))
-            return@intercept finish()
-        }
-
-        proceed()
-    }
+    intercept(ApplicationCallPipeline.Call, Intercept.emailHeaderVerify(service::verifyEmail))
 
     route("/capsule") {
         postWithBinding<CreateNewCapsuleRequest>("/create") { req ->

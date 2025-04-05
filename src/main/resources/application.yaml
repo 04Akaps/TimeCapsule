@@ -11,3 +11,13 @@ database:
   username: "root"
   password: ""
   maximumPoolSize: 10
+
+security:
+  password:
+    pbkdf2:
+      algorithm: "PBKDF2WithHmacSHA256"
+      iterations: "120000"
+      keyLength: "256"
+      saltLength: "16"
+  paseto:
+    issuer: "time-capsule-alpha"

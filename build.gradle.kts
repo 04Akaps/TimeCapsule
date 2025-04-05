@@ -59,8 +59,10 @@ dependencies {
     // auth 검증 커스텀
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
 
-    // statusPage
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    // PASETO 의존성
+    implementation("dev.paseto:jpaseto-api:0.7.0")
+    implementation("dev.paseto:jpaseto-impl:0.7.0")
+    implementation("dev.paseto:jpaseto-jackson:0.7.0")
 
     testImplementation(kotlin("test"))
 }
