@@ -44,15 +44,25 @@ object PasetoProvider {
     }
 
     fun verifyToken(token: String): Paseto {
+        val processedToken = if (token.startsWith("Bearer ", ignoreCase = true)) {
+            token.substring(7)
+        } else {
+            token
+        }
+
         val parser: PasetoParser = Pasetos.parserBuilder()
             .setPublicKey(publicKey)
             .requireIssuer(issuer)
             .build()
 
-        return parser.parse(token)
+        return parser.parse(processedToken)
     }
 
     fun getEmail(token: String): String {
         return verifyToken(token).claims["email"].toString()
+    }
+
+    fun getUserId(token: String): String {
+        return verifyToken(token).claims["sub"].toString()
     }
 }

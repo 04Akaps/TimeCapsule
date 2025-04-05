@@ -12,7 +12,7 @@ import io.ktor.util.pipeline.PipelineInterceptor
 object Intercept {
     fun emailHeaderVerify(verifyEmail: suspend (String) -> Boolean): PipelineInterceptor<Unit, ApplicationCall> {
         return PipelineInterceptor@{
-            val email = call.request.headers["EmailInfo"].toString()
+            val email = call.request.headers["Authorization"].toString()
 
             if (email.isBlank()) {
                 call.respond(

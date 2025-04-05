@@ -4,17 +4,33 @@ import com.example.common.database.DatabaseProvider
 import com.example.routes.auth.types.CreateNewAccountRequest
 import com.example.security.UlidProvider
 import com.example.types.storage.Users
+import com.example.types.storage.Users.email
+import com.example.types.storage.UsersTokenMapper
 import com.example.types.wire.UserWire
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
 class UserRepository {
 
-    suspend fun create(mail: String, hashedPassword : String) = DatabaseProvider.dbQuery {
-        val id = UlidProvider.userId()
+    suspend fun createPasetoToken(userId : String, token : String) = DatabaseProvider.dbQuery {
+        val existingToken = UsersTokenMapper.select { UsersTokenMapper.id eq userId }.singleOrNull()
 
+        if (existingToken == null) {
+            UsersTokenMapper.insert {
+                it[id] = userId
+                it[UsersTokenMapper.token] = token
+            }
+        } else {
+            UsersTokenMapper.update({ UsersTokenMapper.id eq userId }) {
+                it[UsersTokenMapper.token] = token
+            }
+        }
+    }
+
+    suspend fun create(mail: String, id :String, hashedPassword: String) = DatabaseProvider.dbQuery {
         Users.insert {
             it[Users.id] = id
             it[email] = mail

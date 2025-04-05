@@ -5,6 +5,7 @@ import com.example.common.utils.postWithBinding
 import com.example.routes.capsule.service.CapsuleService
 import com.example.routes.capsule.types.CreateNewCapsuleRequest
 import com.example.security.Intercept
+import com.example.security.PasetoProvider
 import com.example.types.response.GlobalResponse
 import com.example.types.response.GlobalResponseProvider
 import com.example.types.storage.ContentType
@@ -26,7 +27,9 @@ fun Route.v1CapsuleRoute() {
                 TODO() // throw exception or return Response
             }
 
-            val email = call.request.headers["EmailInfo"].toString() // -> intercept 통해서 검증한 값이기 떄문에 바로 사용 가능
+            val token = call.request.headers["Authorization"].toString() // -> intercept 통해서 검증한 값이기 떄문에 바로 사용 가능
+            val userID =  PasetoProvider.getUserId(token)
+
 
             TODO() // service 연결하여 해당 내부에서 처리 -> ContentType에 따라
         }

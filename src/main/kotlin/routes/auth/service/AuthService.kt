@@ -6,7 +6,9 @@ import com.example.common.exception.ErrorCode
 import com.example.repository.UserRepository
 import com.example.routes.auth.types.VerifyCreateAccount
 import com.example.security.PBFDK2Provider
+import com.example.security.PasetoProvider
 import com.example.security.RegexProvider
+import com.example.security.UlidProvider
 import com.example.types.response.GlobalResponse
 
 class AuthService(
@@ -16,14 +18,20 @@ class AuthService(
     suspend fun createUser(email : String, password : String)  : GlobalResponse<String> {
         verifyEmailFormat(email)
 
+        val hashedPassword = PBFDK2Provider.encrypt(password)
+
         return DatabaseProvider.dbQuery {
-            val hashedPassword = PBFDK2Provider.encrypt(password)
             val userInfo = userRepository.findByEmail(email)
 
             if (userInfo != null) {
                 return@dbQuery GlobalResponse(1, "failed", "already exists")
             } else {
-                userRepository.create(email, hashedPassword)
+                val userID  = UlidProvider.userId()
+                userRepository.create(email, userID,  hashedPassword)
+
+                val token = PasetoProvider.createToken(userID, email)
+                userRepository.createPasetoToken(userID, token)
+
                 return@dbQuery GlobalResponse(1, "success", "created")
             }
 

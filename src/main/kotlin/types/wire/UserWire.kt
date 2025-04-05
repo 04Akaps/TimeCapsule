@@ -1,5 +1,7 @@
 package com.example.types.wire
 
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.LocalDateTime
 
 data class UserWire(
