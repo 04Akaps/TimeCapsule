@@ -30,9 +30,11 @@ fun Route.v1CapsuleRoute() {
         intercept(ApplicationCallPipeline.Call, Intercept.tokenHeaderVerify())
 
         postWithBinding<CreateNewCapsuleRequest>("/create") { req ->
-//            scheduledOpenDate
+
             val token = call.request.headers["Authorization"].toString() // -> intercept 통해서 검증한 값이기 떄문에 바로 사용 가능
             val userID =  PasetoProvider.getUserId(token)
+
+            // scheduledOpenDate -> TODO 현재시간보다 커야 한다.
 
             when(req.contentType) {
                 ContentType.TEXT.name -> {
@@ -43,35 +45,24 @@ fun Route.v1CapsuleRoute() {
 
                     call.respond(HttpStatusCode.OK, response)
                 }
-                else -> {
+                ContentType.AUDIO.name , ContentType.VIDEO.name, ContentType.IMAGE.name  -> {
                     val multipart = call.receiveMultipart()
-                    var fileItem: PartData.FileItem? = null
+                    val fileItem = FileHandler.exportFileData(multipart)
 
-                    multipart.forEachPart { part ->
-                        if (part is PartData.FileItem && part.name == "file") {
-                            fileItem = part
-                        } else {
-                            part.dispose() // 다른 파트는 즉시 리소스 해제
-                        }
-                    }
+                    val (fileName, fileData) = FileHandler.handlingIncomingFile(fileItem)
 
-                    if (fileItem != null) {
 
-                        try {
+                    val response = service.handlingFileContent(
+                        req.title, req.content, req.description, req.scheduledOpenDate,
+                        fileData, fileName
+                    )
 
-                            val (fileName, fileData) = FileHandler.handlingIncomingFile(fileItem)
+                    call.respond(HttpStatusCode.Created, GlobalResponseProvider.new(0, "File uploaded successfully", response))
+                }
 
-                            call.respond(HttpStatusCode.Created, GlobalResponseProvider.new(0, "File uploaded successfully",
-                                mapOf(
-                                    "fileName" to fileName,
-                                    "fileSize" to fileData.size
-                                )))
-                        }  finally {
-                            fileItem.dispose()
-                        }
-                    } else {
-                        call.respond(HttpStatusCode.BadRequest, GlobalResponseProvider.new(-1, "No file found with key 'file'", null))
-                    }
+
+                else -> {
+
                 }
                 }
             }

@@ -1,5 +1,10 @@
 package com.example.types.response
 
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.response.respond
+import io.ktor.util.pipeline.PipelineContext
+
 class GlobalResponse<T>(
     val code: Int,
     val message: String,

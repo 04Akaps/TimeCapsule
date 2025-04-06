@@ -64,6 +64,9 @@ dependencies {
     implementation("dev.paseto:jpaseto-impl:0.7.0")
     implementation("dev.paseto:jpaseto-jackson:0.7.0")
 
+    // minIO
+    implementation("io.minio:minio:8.5.5")
+
     testImplementation(kotlin("test"))
 }
 

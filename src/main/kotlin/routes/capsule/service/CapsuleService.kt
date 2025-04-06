@@ -8,10 +8,6 @@ class CapsuleService(
     private val capsuleRepository: CapsuleRepository,
     private val userRepository: UserRepository
 ) {
-    suspend fun verifyEmail(email : String) : Boolean {
-        return userRepository.existsByEmail(email)
-    }
-
     suspend fun handlingTextContent(
         title : String,
         content : String,
@@ -20,5 +16,16 @@ class CapsuleService(
     ) : Boolean {
 
         return false
+    }
+
+    suspend fun handlingFileContent(
+        title : String,
+        content : String,
+        description : String,
+        openData : Long,
+        file : ByteArray,
+        fileName : String
+    ) {
+
     }
 }
