@@ -11,4 +11,14 @@ class CapsuleService(
     suspend fun verifyEmail(email : String) : Boolean {
         return userRepository.existsByEmail(email)
     }
+
+    suspend fun handlingTextContent(
+        title : String,
+        content : String,
+        description : String,
+        openData : Long,
+    ) : Boolean {
+
+        return false
+    }
 }
