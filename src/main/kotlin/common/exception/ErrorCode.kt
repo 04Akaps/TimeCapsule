@@ -10,4 +10,5 @@ enum class ErrorCode(
     FAILED_TO_INIT_SECURITY(-4, "failed to init security"),
     FILE_NOT_FOUND(-5, "file not found"),
     FAILED_TO_HANDLE_FILE(-6, "failed to handle file"),
+    FAILED_TO_INIT_STORAGE(-7, "failed to init storage"),
 }

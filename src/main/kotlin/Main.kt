@@ -3,6 +3,7 @@ package com.example
 import com.example.di.appModule
 import com.example.plugins.PBFDK2Encryption
 import com.example.plugins.PasetoEncryption
+import com.example.plugins.StoragePlugin
 import com.example.plugins.configureDatabase
 import com.example.plugins.configureRouting
 import com.example.plugins.contentNegotiation
@@ -17,6 +18,7 @@ fun main(args: Array<String>) {
 fun Application.module() {
     install(PBFDK2Encryption)
     install(PasetoEncryption)
+    install(StoragePlugin)
     install(Koin) {
         modules(appModule)
     }

@@ -10,7 +10,6 @@ val appModule = module {
     single { CapsuleRepository() }
     single { UserRepository() }
     single { AuthService(get()) }
-
     single { CapsuleService(
         get(),
         get(),

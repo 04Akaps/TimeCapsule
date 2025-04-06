@@ -23,3 +23,15 @@ security:
     issuer: "time-capsule-alpha"
     privateKey: "MC4CAQAwBQYDK2VwBCIEIBJbj0ZFnNxYANH/fpzO5+LQGE2Djiv3wysZM93OWPNq"
     publicKey: "MCowBQYDK2VwAyEAlZyrtYwZn00A91LbCzjX4YN56AvAqa7AuETEfNPhlDY="
+
+storage:
+  type: "minio"  # "minio" 또는 "s3"
+  minio:
+    endpoint: "http://localhost:9000"
+    accessKey: "minioadmin"
+    secretKey: "minioadmin"
+  s3:
+    endpoint: "https://s3.amazonaws.com"
+    region: "us-east-1"
+    accessKey: "access"
+    secretKey: "secret"
