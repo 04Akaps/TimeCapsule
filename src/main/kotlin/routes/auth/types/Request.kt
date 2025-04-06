@@ -13,6 +13,15 @@ data class CreateNewAccountRequest(
     val password: String
 )
 
+@RequestData
+data class LoginRequest(
+    @RequestInfo(name = "email", source = RequestSource.BODY, required = true)
+    val email: String,
+
+    @RequestInfo(name = "password", source = RequestSource.BODY, required = true)
+    val password: String
+)
+
 
 @RequestData
 data class VerifyEmailCreated(

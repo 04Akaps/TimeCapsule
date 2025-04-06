@@ -21,3 +21,5 @@ security:
       saltLength: "16"
   paseto:
     issuer: "time-capsule-alpha"
+    privateKey: "MC4CAQAwBQYDK2VwBCIEIBJbj0ZFnNxYANH/fpzO5+LQGE2Djiv3wysZM93OWPNq"
+    publicKey: "MCowBQYDK2VwAyEAlZyrtYwZn00A91LbCzjX4YN56AvAqa7AuETEfNPhlDY="

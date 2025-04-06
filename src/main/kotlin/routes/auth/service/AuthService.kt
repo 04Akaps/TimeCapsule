@@ -10,12 +10,40 @@ import com.example.security.PasetoProvider
 import com.example.security.RegexProvider
 import com.example.security.UlidProvider
 import com.example.types.response.GlobalResponse
+import com.example.types.response.GlobalResponseProvider
+import com.example.types.wire.UserWire
 
 class AuthService(
     private val userRepository: UserRepository
 ) {
 
-    suspend fun createUser(email : String, password : String)  : GlobalResponse<String> {
+    suspend fun login(email : String, password : String) : GlobalResponse<String> {
+        verifyEmailFormat(email)
+
+        var userInfo : UserWire? = null
+
+        DatabaseProvider.dbQuery {
+            userInfo = userRepository.findByEmail(email)
+        }
+
+        if (userInfo == null) {
+            return GlobalResponseProvider.new(-1, "not exists", null)
+        }else {
+            val verify = PBFDK2Provider.verify(userInfo!!.passwordHash.toString(), password)
+            if (!verify) {
+                return GlobalResponseProvider.new(-1, "password in correct", null)
+            }
+
+            val token = PasetoProvider.createToken(userInfo!!.id, email)
+            DatabaseProvider.dbQuery {
+                userRepository.createPasetoToken(userInfo!!.id, token)
+            }
+
+            return GlobalResponse(1, "success", token)
+        }
+    }
+
+    suspend fun createUser(email : String, password : String) : GlobalResponse<String> {
         verifyEmailFormat(email)
 
         val hashedPassword = PBFDK2Provider.encrypt(password)
@@ -32,7 +60,7 @@ class AuthService(
                 val token = PasetoProvider.createToken(userID, email)
                 userRepository.createPasetoToken(userID, token)
 
-                return@dbQuery GlobalResponse(1, "success", "created")
+                return@dbQuery GlobalResponse(1, "success", token)
             }
 
         }

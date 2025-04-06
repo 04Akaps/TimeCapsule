@@ -9,7 +9,7 @@ import com.example.types.storage.ContentType
 @RequestData
 data class CreateNewCapsuleRequest(
     @RequestInfo(name = "contentType", source = RequestSource.BODY, required = true)
-    val contentType : ContentType,
+    val contentType : String,
 
     @RequestInfo(name = "content", source = RequestSource.BODY) // ContentType == TEXT 인 경우에만 유효 및 검증
     val content : String,

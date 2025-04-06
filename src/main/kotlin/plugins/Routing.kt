@@ -19,8 +19,8 @@ fun Application.configureRouting() {
         sampleRouter()
 
         route("/v1") {
-            v1CapsuleRoute()
             v1AuthRoute()
+            v1CapsuleRoute()
         }
     }
 }

@@ -69,10 +69,12 @@ class UserRepository {
 
     private fun rowToUser(row: ResultRow): UserWire? =
         UserWire(
+            id = row[Users.id],
             email = row[Users.email],
             createdAt = row[Users.createdAt].atZone(ZoneId.systemDefault()).toLocalDateTime(),
             updatedAt = row[Users.updatedAt].atZone(ZoneId.systemDefault()).toLocalDateTime(),
             lastLogin = row[Users.lastLogin]?.atZone(ZoneId.systemDefault())?.toLocalDateTime(),
-            isActive = row[Users.isActive]
+            isActive = row[Users.isActive],
+            passwordHash = row[Users.passwordHash]
         )
 }

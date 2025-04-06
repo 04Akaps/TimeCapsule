@@ -10,22 +10,24 @@ import io.ktor.util.pipeline.PipelineInterceptor
 
 
 object Intercept {
-    fun emailHeaderVerify(verifyEmail: suspend (String) -> Boolean): PipelineInterceptor<Unit, ApplicationCall> {
+    fun tokenHeaderVerify(): PipelineInterceptor<Unit, ApplicationCall> {
         return PipelineInterceptor@{
-            val email = call.request.headers["Authorization"].toString()
+            val token = call.request.headers["Authorization"].toString()
 
-            if (email.isBlank()) {
+            if (token.isBlank()) {
                 call.respond(
                     HttpStatusCode.Unauthorized,
-                    GlobalResponseProvider.authFailed(HttpStatusCode.Unauthorized.value, "empty email address", email)
+                    GlobalResponseProvider.authFailed(HttpStatusCode.Unauthorized.value, "empty token", token)
                 )
                 return@PipelineInterceptor finish()
             }
 
-            if (verifyEmail(email)) {
+            try {
+                PasetoProvider.verifyToken(token)
+            } catch (e : Exception) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    GlobalResponseProvider.authFailed(HttpStatusCode.BadRequest.value, "invalid email address", email)
+                    GlobalResponseProvider.authFailed(HttpStatusCode.BadRequest.value, "invalid token", e.message.toString())
                 )
                 return@PipelineInterceptor finish()
             }

@@ -4,6 +4,7 @@ import com.example.common.utils.getWithBinding
 import com.example.common.utils.postWithBinding
 import com.example.routes.auth.service.AuthService
 import com.example.routes.auth.types.CreateNewAccountRequest
+import com.example.routes.auth.types.LoginRequest
 import com.example.routes.auth.types.VerifyCreateAccount
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -18,6 +19,11 @@ fun Route.v1AuthRoute() {
 
         postWithBinding<CreateNewAccountRequest>("/create") { req ->
             val response = authService.createUser(req.email, req.password)
+            call.respond(HttpStatusCode.OK, response)
+        }
+
+        postWithBinding<LoginRequest>("/login") { req ->
+            val response = authService.login(req.email, req.password)
             call.respond(HttpStatusCode.OK, response)
         }
 
