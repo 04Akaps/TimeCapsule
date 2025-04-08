@@ -15,27 +15,16 @@ import java.time.ZoneId
 
 class UserRepository {
 
-    suspend fun createPasetoToken(userId : String, token : String) = DatabaseProvider.dbQuery {
-        val existingToken = UsersTokenMapper.select { UsersTokenMapper.id eq userId }.singleOrNull()
+    suspend fun create(mail: String, hashedPassword: String) : String {
+        val id = UlidProvider.userId()
 
-        if (existingToken == null) {
-            UsersTokenMapper.insert {
-                it[id] = userId
-                it[UsersTokenMapper.token] = token
-            }
-        } else {
-            UsersTokenMapper.update({ UsersTokenMapper.id eq userId }) {
-                it[UsersTokenMapper.token] = token
-            }
-        }
-    }
-
-    suspend fun create(mail: String, id :String, hashedPassword: String) = DatabaseProvider.dbQuery {
         Users.insert {
             it[Users.id] = id
             it[email] = mail
             it[passwordHash] = hashedPassword
         }
+
+        return id
     }
 
     suspend fun findById(id: String): UserWire? = DatabaseProvider.dbQuery {

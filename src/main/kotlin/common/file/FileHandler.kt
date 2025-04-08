@@ -48,6 +48,6 @@ object FileHandler {
             throw CustomException(ErrorCode.FILE_NOT_FOUND)
         }
 
-        return fileItem
+        return fileItem as PartData.FileItem
     }
 }

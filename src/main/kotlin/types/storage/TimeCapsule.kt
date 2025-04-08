@@ -1,10 +1,8 @@
 package com.example.types.storage
 
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
-import java.time.LocalDateTime
-import java.math.BigDecimal
+import org.jetbrains.exposed.sql.statements.InsertStatement
 
 object TimeCapsules : Table() {
     val id = varchar("id", 100)
@@ -13,7 +11,7 @@ object TimeCapsules : Table() {
     val description = text("description").nullable()
     val creationDate = timestamp("creation_date")
     val scheduledOpenDate = timestamp("scheduled_open_date")
-    val status = enumerationByName("status", 10, CapsuleStatus::class).default(CapsuleStatus.SEALED)
+    val status = enumerationByName("status", 10, CapsuleStatus::class)
     val locationLat = decimal("location_lat", 10, 8).nullable()
     val locationLng = decimal("location_lng", 11, 8).nullable()
 

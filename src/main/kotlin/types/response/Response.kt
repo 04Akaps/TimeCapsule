@@ -15,5 +15,7 @@ class GlobalResponse<T>(
 object GlobalResponseProvider {
     fun <T> new(code : Int, message : String, v : T?) : GlobalResponse<T> = GlobalResponse(code, message, v)
 
-    fun authFailed(code : Int, message: String, v : String) : GlobalResponse<String> = GlobalResponse<String>(code, message, v)
+    fun <T> failed(code : Int, message : String, v : T?) : GlobalResponse<T> = GlobalResponse(code, message, v)
+
+    fun authFailed(code : Int, message: String, v : String) : GlobalResponse<String> = GlobalResponse(code, message, v)
 }

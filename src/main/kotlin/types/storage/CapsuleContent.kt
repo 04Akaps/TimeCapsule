@@ -18,11 +18,3 @@ object CapsuleContents : Table() {
 enum class ContentType {
     TEXT, IMAGE, VIDEO, AUDIO
 }
-
-data class CapsuleContentStorage(
-    val id: String,
-    val capsuleId: String,
-    val contentType: ContentType,
-    val content: String? = null,
-    val createdAt: LocalDateTime = LocalDateTime.now()
-)

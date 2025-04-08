@@ -3,7 +3,6 @@ package com.example.routes.capsule.types
 import com.example.common.binder.RequestData
 import com.example.common.binder.RequestInfo
 import com.example.common.binder.RequestSource
-import com.example.types.storage.ContentType
 
 
 @RequestData
@@ -19,6 +18,9 @@ data class CreateNewCapsuleRequest(
 
     @RequestInfo(name = "description", source = RequestSource.BODY, required = true)
     val description : String,
+
+    @RequestInfo(name = "recipients", source = RequestSource.BODY, required = true)
+    val recipients : String,
 
     @RequestInfo(name = "openDate", source = RequestSource.BODY, required = true)
     val scheduledOpenDate : Long
