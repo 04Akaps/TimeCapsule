@@ -7,11 +7,10 @@ import com.example.repository.CapsuleContentRepository
 import com.example.repository.CapsuleRepository
 import com.example.repository.RecipientsRepository
 import com.example.repository.UserRepository
+import com.example.routes.capsule.types.UploadContentResponse
 import com.example.routes.capsule.types.UploadFileResponse
 import com.example.types.response.GlobalResponse
 import com.example.types.response.GlobalResponseProvider
-import io.ktor.http.*
-
 import com.example.types.storage.ContentType
 
 
@@ -27,15 +26,28 @@ class CapsuleService(
     }
 
     suspend fun handlingTextContent(
-        recipient: String,
+        contentType: ContentType,
+        recipientEmail: String,
         userID : String,
         title : String,
         content : String,
         description : String,
         openData : Long,
-    ) : Boolean {
+    ) : GlobalResponse<UploadContentResponse> {
 
-        return false
+        try {
+            DatabaseProvider.dbQuery {
+                val capsuleID = capsuleRepository.createCapsule(userID, title, description, openData.toLocalDateTime())
+                capsuleContentRepository.createCapsuleContent(capsuleID, contentType, content)
+                recipientsRepository.create(capsuleID, recipientEmail)
+            }
+
+            return GlobalResponseProvider.new(0, "success", UploadContentResponse(
+                recipientEmail = recipientEmail,
+            ))
+        } catch (e :Exception) {
+            return GlobalResponseProvider.failed(-1, "failed to content ${e.message}", null)
+        }
     }
 
     suspend fun handlingFileContent(

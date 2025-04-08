@@ -1,5 +1,7 @@
 package com.example.routes.capsule.route
 
+import com.example.common.exception.CustomException
+import com.example.common.exception.ErrorCode
 import com.example.common.file.FileHandler
 import com.example.common.utils.FormatVerify
 import com.example.common.utils.postWithBinding
@@ -24,6 +26,17 @@ fun Route.v1CapsuleRoute() {
 
         postWithBinding<CreateNewCapsuleRequest>("/create") { req ->
             FormatVerify.verifyEmailFormat(req.recipients)
+
+            try {
+                val exist = service.verifyEmailExist(req.recipients)
+                if (!exist) {
+                    call.respond(HttpStatusCode.BadRequest, GlobalResponseProvider.new(-1, "not exist email : ${req.recipients}", null))
+                    return@postWithBinding
+                }
+            } catch (e : Exception) {
+                throw CustomException(ErrorCode.LOGIC_EXCEPTIOn, e.message)
+            }
+
             if (!FormatVerify.validateFutureDate(req.scheduledOpenDate)) {
                 call.respond(HttpStatusCode.BadRequest, GlobalResponseProvider.new(-1, "schedule open data failed", null))
                 return@postWithBinding
@@ -38,7 +51,11 @@ fun Route.v1CapsuleRoute() {
                     if (req.content.isEmpty()) {
                         call.respond(HttpStatusCode.BadRequest, GlobalResponseProvider.new(-1, "content must provided", null))
                     }
-                    val response = service.handlingTextContent(req.recipients, userID, req.title, req.content, req.description, req.scheduledOpenDate)
+                    val response = service.handlingTextContent(
+                        type,
+                        req.recipients, userID, req.title, req.content, req.description,
+                        req.scheduledOpenDate
+                    )
 
                     call.respond(HttpStatusCode.OK, response)
                 }
@@ -47,7 +64,6 @@ fun Route.v1CapsuleRoute() {
                     val fileItem = FileHandler.exportFileData(multipart)
 
                     val (fileName, fileData) = FileHandler.handlingIncomingFile(fileItem)
-
 
                     val response = service.handlingFileContent(
                         type,

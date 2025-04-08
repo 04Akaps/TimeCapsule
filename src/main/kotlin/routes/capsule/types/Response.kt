@@ -7,3 +7,7 @@ data class UploadFileResponse(
     val filePath : String,
     val fileName : String
 )
+
+data class UploadContentResponse(
+    val recipientEmail : String,
+)
