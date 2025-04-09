@@ -14,13 +14,9 @@ import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.file.Files
-import java.nio.file.Path
 import javax.imageio.ImageIO
 import kotlin.io.path.deleteIfExists
-import kotlin.io.path.extension
 
-
-// TODO -> logging 기능이 전체적으로 필요 이미지 사이즈 조절은 진행이 되었는데, 인스턴스에 ffmpeg가 없다면, crit 처리 필요
 object FileStorageRepository {
 
     private lateinit var client: MinioClient
@@ -31,6 +27,7 @@ object FileStorageRepository {
     private const val DEFAULT_VIDEO_CRF = "23"
     private const val DEFAULT_VIDEO_PRESET = "medium"
 
+    private val logger = LoggerFactory.getLogger(FileStorageRepository::class.java)
 
     internal fun initialize(
         endPoint: String, access : String, secret : String,
@@ -40,10 +37,9 @@ object FileStorageRepository {
             .endpoint(endPoint)
             .credentials(access, secret)
 
-        if (type == StorageType.S3 && !region.isNullOrBlank()) {
+        if (type == StorageType.S3 && region.isNotBlank()) {
             builder.region(region)
         }
-
 
         this.client = builder.build()
     }
@@ -64,10 +60,12 @@ object FileStorageRepository {
             PutObjectArgs.builder()
                 .bucket(bucketName)
                 .`object`(filePath)
-                .stream(ByteArrayInputStream(fileBytes), fileBytes.size.toLong(), -1)
+                .stream(ByteArrayInputStream(optimizedBytes), optimizedBytes.size.toLong(), -1)
                 .contentType(getContentType(fileName))
                 .build()
         )
+
+        logger.info("File uploaded: $filePath")
 
         return fileName
     }
@@ -156,6 +154,7 @@ object FileStorageRepository {
 
             return output.toByteArray()
         } catch (e: Exception) {
+            logger.info("optimize image error: ${e.message}")
             return fileBytes
         }
     }
@@ -183,12 +182,7 @@ object FileStorageRepository {
                 tempOutputFile.toString()
             )
 
-            val process = ProcessBuilder(*command)
-                .redirectErrorStream(true)
-                .start()
-
-            val output = process.inputStream.bufferedReader().use { it.readText() }
-            val exitCode = process.waitFor()
+            val exitCode = optimizeUsingFfmpeg(command)
 
             if (exitCode != 0) {
                 return fileBytes
@@ -219,12 +213,7 @@ object FileStorageRepository {
                 tempOutputFile.toString()
             )
 
-            val process = ProcessBuilder(*command)
-                .redirectErrorStream(true)
-                .start()
-
-            val output = process.inputStream.bufferedReader().use { it.readText() }
-            val exitCode = process.waitFor()
+            val exitCode = optimizeUsingFfmpeg(command)
 
             if (exitCode != 0) {
                 return fileBytes
@@ -237,6 +226,18 @@ object FileStorageRepository {
             tempInputFile.deleteIfExists()
             tempOutputFile.deleteIfExists()
         }
+    }
+
+    private fun optimizeUsingFfmpeg(command : Array<String>) : Int {
+        val process = ProcessBuilder(*command)
+            .redirectErrorStream(true)
+            .start()
+
+        val output = process.inputStream.bufferedReader().use { it.readText() }
+        val exitCode = process.waitFor()
+
+        logger.info("optimize video output: $output and exitCode: $exitCode")
+        return exitCode
     }
 
     private fun verifyBucket(bucket : String) {

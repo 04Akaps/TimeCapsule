@@ -1,12 +1,7 @@
 package com.example
 
 import com.example.di.appModule
-import com.example.plugins.PBFDK2Encryption
-import com.example.plugins.PasetoEncryption
-import com.example.plugins.StoragePlugin
-import com.example.plugins.configureDatabase
-import com.example.plugins.configureRouting
-import com.example.plugins.contentNegotiation
+import com.example.plugins.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import org.koin.ktor.plugin.Koin
@@ -16,6 +11,8 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    StartUpValidation()
+
     install(PBFDK2Encryption)
     install(PasetoEncryption)
     install(StoragePlugin)
