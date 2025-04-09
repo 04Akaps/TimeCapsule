@@ -1,16 +1,56 @@
 package com.example.repository
 
 import com.example.common.database.DatabaseProvider
+import com.example.common.utils.FormatVerify.toLocalDateTime
 import com.example.security.UlidProvider
-import com.example.types.storage.CapsuleStatus
-import com.example.types.storage.TimeCapsules
+import com.example.types.storage.*
+import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.Instant
 import java.time.ZoneOffset
 
 class CapsuleRepository {
+
+    fun capsuleWithContentsAndRecipient(capsuleId : String) : TimeCapsuleByCapsuleIdStorage? {
+        val query = TimeCapsules
+            .innerJoin(CapsuleContents, { id }, { CapsuleContents.capsuleId })
+            .innerJoin(Recipients, { TimeCapsules.id }, { Recipients.capsuleId })
+            .slice(
+                TimeCapsules.id,
+                TimeCapsules.title,
+                TimeCapsules.description,
+                TimeCapsules.scheduledOpenDate,
+                TimeCapsules.status,
+
+                CapsuleContents.contentType,
+                CapsuleContents.content,
+
+                Recipients.recipientEmail,
+                Recipients.hasViewed
+            )
+            .select { TimeCapsules.id eq capsuleId }
+
+        if (query.empty()) {
+            return null
+        }
+
+        val capsuleRow = query.first()
+
+        return TimeCapsuleByCapsuleIdStorage(
+            id = capsuleRow[TimeCapsules.id],
+            title = capsuleRow[TimeCapsules.title],
+            description = capsuleRow[TimeCapsules.description],
+            scheduledOpenDate = capsuleRow[TimeCapsules.scheduledOpenDate].toLocalDateTime(),
+            status = capsuleRow[TimeCapsules.status].name,
+            contentType = capsuleRow[CapsuleContents.contentType].name,
+            content = capsuleRow[CapsuleContents.content],
+            recipientEmail = capsuleRow[Recipients.recipientEmail],
+            hasViewed = capsuleRow[Recipients.hasViewed]
+        )
+    }
 
     fun createCapsule(
         creatorId: String,

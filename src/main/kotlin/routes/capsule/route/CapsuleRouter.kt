@@ -4,8 +4,10 @@ import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import com.example.common.file.FileHandler
 import com.example.common.utils.FormatVerify
+import com.example.common.utils.getWithBinding
 import com.example.common.utils.postWithBinding
 import com.example.routes.capsule.service.CapsuleService
+import com.example.routes.capsule.types.CapsuleDetailRequest
 import com.example.routes.capsule.types.CreateNewCapsuleRequest
 import com.example.security.Intercept
 import com.example.security.PasetoProvider
@@ -77,10 +79,10 @@ fun Route.v1CapsuleRoute() {
             }
         }
 
-
-
-
-
+        getWithBinding<CapsuleDetailRequest>("/capsule-detail/{capsuleId}") { req ->
+            val response = service.getCapsuleContentById(req.capsuleId)
+            call.respond(HttpStatusCode.OK, response)
+        }
 
     }
 }

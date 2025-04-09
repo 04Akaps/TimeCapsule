@@ -11,5 +11,6 @@ enum class ErrorCode(
     FILE_NOT_FOUND(-5, "file not found"),
     FAILED_TO_HANDLE_FILE(-6, "failed to handle file"),
     FAILED_TO_INIT_STORAGE(-7, "failed to init storage"),
+    FAILED_TO_QUERY(-8, "query failed"),
     LOGIC_EXCEPTIOn(-100, "exception occurred while processing request"),
 }

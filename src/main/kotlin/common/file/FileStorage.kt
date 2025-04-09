@@ -8,9 +8,29 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.UUID
 
+import io.minio.MinioClient
+import io.minio.PutObjectArgs
+import org.slf4j.LoggerFactory
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import java.nio.file.Files
+import java.nio.file.Path
+import javax.imageio.ImageIO
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.extension
+
+
+// TODO -> logging 기능이 전체적으로 필요 이미지 사이즈 조절은 진행이 되었는데, 인스턴스에 ffmpeg가 없다면, crit 처리 필요
 object FileStorageRepository {
 
     private lateinit var client: MinioClient
+
+    private const val MAX_IMAGE_SIZE = 5 * 1024 * 1024
+    private const val MAX_VIDEO_SIZE = 100 * 1024 * 1024
+    private const val DEFAULT_IMAGE_QUALITY = 0.8f
+    private const val DEFAULT_VIDEO_CRF = "23"
+    private const val DEFAULT_VIDEO_PRESET = "medium"
+
 
     internal fun initialize(
         endPoint: String, access : String, secret : String,
@@ -30,6 +50,15 @@ object FileStorageRepository {
 
     fun uploadFile(bucketName : String, fileBytes: ByteArray, fileName: String, filePath : String): String {
         verifyBucket(bucketName)
+
+        val contentType = getContentType(fileName)
+
+        val optimizedBytes = when {
+            contentType.startsWith("image/") -> optimizeImage(fileBytes, fileName)
+            contentType.startsWith("video/") -> optimizeVideo(fileBytes, fileName)
+            contentType.startsWith("audio/") -> optimizeAudio(fileBytes, fileName)
+            else -> fileBytes // 기타 파일 유형은 최적화 없이 그대로 사용
+        }
 
         client.putObject(
             PutObjectArgs.builder()
@@ -86,15 +115,135 @@ object FileStorageRepository {
         )
     }
 
+    private fun optimizeImage(fileBytes: ByteArray, fileName: String): ByteArray {
+        if (fileBytes.size <= MAX_IMAGE_SIZE) {
+            return fileBytes
+        }
+
+        try {
+            val image = ImageIO.read(ByteArrayInputStream(fileBytes)) ?: return fileBytes
+
+            val targetWidth = if (image.width > 2000) 2000 else image.width
+            val targetHeight = (targetWidth.toFloat() / image.width * image.height).toInt()
+
+            val resized = if (image.width > targetWidth) {
+                val newImage = BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB)
+                val g = newImage.createGraphics()
+                g.drawImage(image.getScaledInstance(targetWidth, targetHeight, java.awt.Image.SCALE_SMOOTH), 0, 0, null)
+                g.dispose()
+                newImage
+            } else {
+                image
+            }
+
+            val output = ByteArrayOutputStream()
+            val formatName = fileName.substringAfterLast('.', "jpeg")
+
+            if (formatName.equals("jpg", ignoreCase = true) || formatName.equals("jpeg", ignoreCase = true)) {
+                val jpgWriter = ImageIO.getImageWritersByFormatName("jpeg").next()
+                val jpgParams = jpgWriter.defaultWriteParam
+                jpgParams.compressionMode = javax.imageio.ImageWriteParam.MODE_EXPLICIT
+                jpgParams.compressionQuality = DEFAULT_IMAGE_QUALITY
+
+                val ios = javax.imageio.stream.MemoryCacheImageOutputStream(output)
+                jpgWriter.output = ios
+                jpgWriter.write(null, javax.imageio.IIOImage(resized, null, null), jpgParams)
+                jpgWriter.dispose()
+                ios.close()
+            } else {
+                ImageIO.write(resized, formatName, output)
+            }
+
+            return output.toByteArray()
+        } catch (e: Exception) {
+            return fileBytes
+        }
+    }
+
+    private fun optimizeVideo(fileBytes: ByteArray, fileName: String): ByteArray {
+        if (fileBytes.size <= MAX_VIDEO_SIZE) {
+            return fileBytes
+        }
+
+        val tempInputFile = Files.createTempFile("input_", ".$fileName")
+        val tempOutputFile = Files.createTempFile("output_", ".$fileName")
+
+        try {
+            Files.write(tempInputFile, fileBytes)
+
+            val command = arrayOf(
+                "ffmpeg", "-i", tempInputFile.toString(),
+                "-c:v", "libx264",
+                "-crf", DEFAULT_VIDEO_CRF,
+                "-preset", DEFAULT_VIDEO_PRESET,
+                "-c:a", "aac",
+                "-b:a", "128k",
+                "-movflags", "+faststart",
+                "-y",
+                tempOutputFile.toString()
+            )
+
+            val process = ProcessBuilder(*command)
+                .redirectErrorStream(true)
+                .start()
+
+            val output = process.inputStream.bufferedReader().use { it.readText() }
+            val exitCode = process.waitFor()
+
+            if (exitCode != 0) {
+                return fileBytes
+            }
+
+            return Files.readAllBytes(tempOutputFile)
+        } catch (e: Exception) {
+            return fileBytes
+        } finally {
+            tempInputFile.deleteIfExists()
+            tempOutputFile.deleteIfExists()
+        }
+    }
+
+    // 오디오 최적화 (FFmpeg 사용)
+    private fun optimizeAudio(fileBytes: ByteArray, fileName: String): ByteArray {
+        val tempInputFile = Files.createTempFile("input_", ".$fileName")
+        val tempOutputFile = Files.createTempFile("output_", ".$fileName")
+
+        try {
+            Files.write(tempInputFile, fileBytes)
+
+            val command = arrayOf(
+                "ffmpeg", "-i", tempInputFile.toString(),
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-y",
+                tempOutputFile.toString()
+            )
+
+            val process = ProcessBuilder(*command)
+                .redirectErrorStream(true)
+                .start()
+
+            val output = process.inputStream.bufferedReader().use { it.readText() }
+            val exitCode = process.waitFor()
+
+            if (exitCode != 0) {
+                return fileBytes
+            }
+
+            return Files.readAllBytes(tempOutputFile)
+        } catch (e: Exception) {
+            return fileBytes
+        } finally {
+            tempInputFile.deleteIfExists()
+            tempOutputFile.deleteIfExists()
+        }
+    }
+
     private fun verifyBucket(bucket : String) {
         val bucketExists = client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())
         if (!bucketExists) {
             client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build())
         }
-    }
-
-    private fun generateUniqueFileName(originalFileName: String): String {
-        return "${UUID.randomUUID()}-$originalFileName"
     }
 
     private fun getContentType(fileName: String): String {

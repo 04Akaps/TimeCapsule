@@ -25,3 +25,10 @@ data class CreateNewCapsuleRequest(
     @RequestInfo(name = "openDate", source = RequestSource.BODY, required = true)
     val scheduledOpenDate : Long
 )
+
+
+@RequestData
+data class CapsuleDetailRequest(
+    @RequestInfo(name = "capsuleId", source = RequestSource.QUERY, required = true)
+    val capsuleId : String,
+)
