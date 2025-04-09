@@ -3,7 +3,7 @@ package com.example.types.storage
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
 
-object Users : Table() {
+object Users : Table(name = "users") {
     val id = varchar("id", 100)
     val email = varchar("email", 100).uniqueIndex()
     val passwordHash = varchar("password_hash", 255)

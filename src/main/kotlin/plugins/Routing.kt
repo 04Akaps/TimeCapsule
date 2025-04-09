@@ -15,9 +15,6 @@ fun Application.configureRouting() {
             call.respond("Hello!")
         }
 
-
-
-
         route("/api/v1") {
             v1AuthRoute()
             v1CapsuleRoute()

@@ -44,7 +44,7 @@ class CapsuleRepository {
             title = capsuleRow[TimeCapsules.title],
             description = capsuleRow[TimeCapsules.description],
             scheduledOpenDate = capsuleRow[TimeCapsules.scheduledOpenDate].toLocalDateTime(),
-            status = capsuleRow[TimeCapsules.status].name,
+            status = capsuleRow[TimeCapsules.status].toString(),
             contentType = capsuleRow[CapsuleContents.contentType].name,
             content = capsuleRow[CapsuleContents.content],
             recipientEmail = capsuleRow[Recipients.recipientEmail],
@@ -59,7 +59,7 @@ class CapsuleRepository {
         scheduledOpenDate: LocalDateTime,
         locationLat: BigDecimal? = null,
         locationLng: BigDecimal? = null,
-        status: CapsuleStatus = CapsuleStatus.SEALED,
+        status: CapsuleStatus = CapsuleStatus.sealed,
     ) : String {
         val id = UlidProvider.capsuleId()
         val nowInstant = Instant.now()

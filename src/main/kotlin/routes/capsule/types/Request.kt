@@ -29,6 +29,6 @@ data class CreateNewCapsuleRequest(
 
 @RequestData
 data class CapsuleDetailRequest(
-    @RequestInfo(name = "capsuleId", source = RequestSource.QUERY, required = true)
+    @RequestInfo(name = "capsuleId", source = RequestSource.PATH, required = true)
     val capsuleId : String,
 )

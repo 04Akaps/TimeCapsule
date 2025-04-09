@@ -2,7 +2,7 @@ package com.example.types.storage
 
 import org.jetbrains.exposed.sql.Table
 
-object Recipients : Table() {
+object Recipients : Table(name = "recipients") {
     val id = varchar("id", 100)
     val capsuleId = varchar("capsule_id", 100).references(TimeCapsules.id)
     val recipientEmail = varchar("recipient_email", 100)

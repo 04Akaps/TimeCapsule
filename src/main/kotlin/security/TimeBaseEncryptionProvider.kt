@@ -29,6 +29,8 @@ object TimeBaseEncryptionProvider {
     private const val GCM_TAG_LENGTH = 16 // GCM 인증의 태그 길이
     private val secureRandom = SecureRandom() // 난수 생성
 
+    // TODO masterKey 설정 및 init으로 내부 변수 초기화 로직적용 --> 다른 object 코드에 대해서 동일하게 initialize가 아닌 init을 적용
+
     fun encryptWithTimelock(content: String, masterKey: ByteArray, releaseTime: LocalDateTime): TimelockedData {
         val dataKey = ByteArray(32)
         secureRandom.nextBytes(dataKey)

@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.LocalDateTime
 
-object CapsuleContents : Table() {
+object CapsuleContents : Table(name = "capsule_contents") {
     val id = varchar("id", 100)
     val capsuleId = varchar("capsule_id", 100).references(TimeCapsules.id)
     val contentType = enumerationByName("content_type", 10, ContentType::class)
@@ -16,5 +16,5 @@ object CapsuleContents : Table() {
 }
 
 enum class ContentType {
-    TEXT, IMAGE, VIDEO, AUDIO
+    text, image, video, audio
 }

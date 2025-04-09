@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.LocalDateTime
 
-object TimeCapsules : Table() {
+object TimeCapsules : Table(name = "time_capsules") {
     val id = varchar("id", 100)
     val creator_id = varchar("creator_id", 100).references(Users.id)
     val title = varchar("title", 100)
@@ -20,9 +20,8 @@ object TimeCapsules : Table() {
 }
 
 enum class CapsuleStatus {
-    SEALED, OPENED
+    sealed, opened
 }
-
 
 data class TimeCapsuleByCapsuleIdStorage(
     val id: String,
