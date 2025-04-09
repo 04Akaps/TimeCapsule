@@ -15,7 +15,7 @@ import java.time.ZoneId
 
 class UserRepository {
 
-    suspend fun create(mail: String, hashedPassword: String) : String {
+    fun create(mail: String, hashedPassword: String) : String {
         val id = UlidProvider.userId()
 
         Users.insert {
@@ -44,7 +44,6 @@ class UserRepository {
             .limit(1)
             .count() > 0
     }
-
 
     suspend fun updateLastLogin(id: String, loginTime: LocalDateTime): Boolean = DatabaseProvider.dbQuery {
         Users.update({ Users.id eq id }) {

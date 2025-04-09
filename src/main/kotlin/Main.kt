@@ -11,7 +11,7 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    StartUpValidation()
+    startUpValidation()
     APIObservability()
 
     install(PBFDK2Encryption)

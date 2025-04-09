@@ -28,8 +28,8 @@ storage:
   type: "minio"  # "minio" 또는 "s3"
   minio:
     endpoint: "http://localhost:9000"
-    accessKey: "minioadmin"
-    secretKey: "minioadmin"
+    accessKey: "minio_user"
+    secretKey: "minio_password"
   s3:
     endpoint: "https://s3.amazonaws.com"
     region: "us-east-1"

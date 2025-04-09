@@ -14,14 +14,19 @@ val repositoryModule = module {
     single { RecipientsRepository() }
 }
 
-val appModule = module {
-    repositoryModule
-
-    single { AuthService(get(), get()) }
+var serviceModule = module {
+    single { AuthService(
+        get(), get()
+    ) }
     single { CapsuleService(
         get(),
         get(),
         get(),
         get(),
     ) }
+}
+
+val appModule = module {
+    includes(repositoryModule)
+    includes(serviceModule)
 }
