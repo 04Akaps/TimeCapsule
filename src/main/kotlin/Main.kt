@@ -12,6 +12,7 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     StartUpValidation()
+    APIObservability()
 
     install(PBFDK2Encryption)
     install(PasetoEncryption)

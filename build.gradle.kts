@@ -67,6 +67,9 @@ dependencies {
     // minIO
     implementation("io.minio:minio:8.5.5")
 
+    // logging
+    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
+
     testImplementation(kotlin("test"))
 }
 
