@@ -70,6 +70,13 @@ dependencies {
     // logging
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
 
+    // Jakarta Mail
+    implementation("com.sun.mail:jakarta.mail:2.0.1")
+
+    // AWS SDK for SES
+    implementation(platform("software.amazon.awssdk:bom:2.17.219"))
+    implementation("software.amazon.awssdk:ses")
+
     testImplementation(kotlin("test"))
 }
 

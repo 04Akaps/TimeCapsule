@@ -5,6 +5,28 @@ ktor:
   deployment:
     port: 9090
 
+email:
+  # 사용할 이메일 공급자 (jakarta-mail 또는 aws-ses)
+  provider: jakarta-mail
+
+  fromEmail: ${EMAIL_FROM:noreply@yourcompany.com}
+  fromName: ${EMAIL_FROM_NAME:Your Company}
+  debugEnabled: ${EMAIL_DEBUG:false}
+
+  jakartaMail:
+    host: ${EMAIL_SMTP_HOST:smtp.gmail.com}
+    port: ${EMAIL_SMTP_PORT:587}
+    username: ${EMAIL_USERNAME:}
+    password: ${EMAIL_PASSWORD:}
+    connectionTimeout: ${EMAIL_CONNECTION_TIMEOUT:5000}
+    timeout: ${EMAIL_TIMEOUT:5000}
+
+  # AWS SES 설정 (provider=aws-ses일 때 사용)
+  awsSes:
+    region: ${AWS_SES_REGION:us-east-1}
+    accessKey: ${AWS_ACCESS_KEY:}
+    secretKey: ${AWS_SECRET_KEY:}
+
 database:
   driverClassName: "com.mysql.cj.jdbc.Driver"
   jdbcURL: "jdbc:mysql://localhost:3306/app?useUnicode=true&characterEncoding=utf8&useSSL=false"
