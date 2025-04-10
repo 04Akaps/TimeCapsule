@@ -13,13 +13,7 @@ fun main(args: Array<String>) {
 fun Application.module() {
     startUpValidation()
     APIObservability()
-
-    install(PBFDK2Encryption)
-    install(PasetoEncryption)
-    install(StoragePlugin)
-    install(Koin) {
-        modules(appModule)
-    }
+    initialize()
 
     contentNegotiation()
     configureDatabase()

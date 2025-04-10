@@ -55,7 +55,6 @@ fun Route.v1CapsuleRoute() {
                     }
 
 
-//                    TimeBaseEncryptionProvider.encryptWithTimelock(req.content)
                     val response = service.handlingTextContent(
                         type,
                         req.recipients, userID, req.title, req.content, req.description,

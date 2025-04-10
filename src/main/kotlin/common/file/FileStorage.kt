@@ -4,6 +4,7 @@ import com.example.plugins.StorageType
 import io.minio.*
 import io.minio.http.Method
 import io.ktor.http.*
+import io.ktor.server.application.*
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.UUID

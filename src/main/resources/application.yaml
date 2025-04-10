@@ -23,6 +23,8 @@ security:
     issuer: "time-capsule-alpha"
     privateKey: "MC4CAQAwBQYDK2VwBCIEIBJbj0ZFnNxYANH/fpzO5+LQGE2Djiv3wysZM93OWPNq"
     publicKey: "MCowBQYDK2VwAyEAlZyrtYwZn00A91LbCzjX4YN56AvAqa7AuETEfNPhlDY="
+  timebase:
+    masterKey : cTjzOEZNpXees+RZMGzvDQmnIPlURWEn+brd9yi0Qro=
 
 storage:
   type: "minio"  # "minio" 또는 "s3"

@@ -5,12 +5,9 @@ import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import com.example.common.file.FileStorageRepository
 import com.example.common.utils.FormatVerify.toLocalDateTime
-import com.example.repository.CapsuleContentRepository
-import com.example.repository.CapsuleRepository
-import com.example.repository.RecipientsRepository
-import com.example.repository.UserRepository
-import com.example.routes.capsule.types.UploadContentResponse
-import com.example.routes.capsule.types.UploadFileResponse
+import com.example.repository.*
+import com.example.routes.capsule.types.CapsuleCreateResponse
+import com.example.security.TimeBaseEncryptionProvider
 import com.example.types.response.GlobalResponse
 import com.example.types.response.GlobalResponseProvider
 import com.example.types.storage.ContentType
@@ -21,7 +18,8 @@ class CapsuleService(
     private val capsuleContentRepository: CapsuleContentRepository,
     private val recipientsRepository: RecipientsRepository,
     private val capsuleRepository: CapsuleRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val timeCapsuleEncryptionMapperRepository: TimeCapsuleEncryptionMapperRepository
 ) {
 
     suspend fun getCapsuleContentById(capsuleId : String) : GlobalResponse<CapsuleWire?> {
@@ -41,6 +39,17 @@ class CapsuleService(
         return userRepository.existsByEmail(email)
     }
 
+    suspend fun handlingTimebaseEncryptionMapper(encryptedDataKey : String, timeSalt : String) : GlobalResponse<CapsuleCreateResponse>? {
+        try {
+            DatabaseProvider.dbQuery {
+                timeCapsuleEncryptionMapperRepository.create(encryptedDataKey, timeSalt)
+            }
+            return null
+        } catch (e : Exception) {
+            return GlobalResponseProvider.failed(-1, "failed to content ${e.message}", null)
+        }
+    }
+
     suspend fun handlingTextContent(
         contentType: ContentType,
         recipientEmail: String,
@@ -49,21 +58,26 @@ class CapsuleService(
         content : String,
         description : String,
         openData : Long,
-    ) : GlobalResponse<UploadContentResponse> {
+    ) : GlobalResponse<CapsuleCreateResponse> {
+
+
 
         try {
-
+            val encryptedData = TimeBaseEncryptionProvider.encryptWithTimelock(content, openData)
             var capsuleID = ""
 
             DatabaseProvider.dbQuery {
+                timeCapsuleEncryptionMapperRepository.create(encryptedData.encryptedDataKey, encryptedData.timeSalt)
+
                 capsuleID = capsuleRepository.createCapsule(userID, title, description, openData.toLocalDateTime())
-                capsuleContentRepository.createCapsuleContent(capsuleID, contentType, content)
+                capsuleContentRepository.createCapsuleContent(capsuleID, contentType, encryptedData.encryptedContent)
                 recipientsRepository.create(capsuleID, recipientEmail)
             }
 
-            return GlobalResponseProvider.new(0, "success", UploadContentResponse(
+            return GlobalResponseProvider.new(0, "success", CapsuleCreateResponse(
                 recipientEmail = recipientEmail,
-                capsuleId = capsuleID
+                capsuleId = capsuleID,
+                contentType = contentType,
             ))
         } catch (e :Exception) {
             return GlobalResponseProvider.failed(-1, "failed to content ${e.message}", null)
@@ -80,14 +94,17 @@ class CapsuleService(
         openData: Long,
         file: ByteArray,
         fileName: String
-    ) : GlobalResponse<UploadFileResponse> {
+    ) : GlobalResponse<CapsuleCreateResponse> {
         try {
+            val encryptedData = TimeBaseEncryptionProvider.encryptWithTimelock(content, openData)
             var capsuleID = ""
             var filePath = ""
 
             DatabaseProvider.dbQuery {
+                timeCapsuleEncryptionMapperRepository.create(encryptedData.encryptedDataKey, encryptedData.timeSalt)
+
                 capsuleID = capsuleRepository.createCapsule(userID, title, description, openData.toLocalDateTime())
-                capsuleContentRepository.createCapsuleContent(capsuleID, contentType, content)
+                capsuleContentRepository.createCapsuleContent(capsuleID, contentType, encryptedData.encryptedContent)
                 recipientsRepository.create(capsuleID, recipientEmail)
 
                 // File UPload하는 시간이 길어지면, tranasction connection이 계속 열려있는데.. 괜찮을까?
@@ -95,12 +112,13 @@ class CapsuleService(
                 FileStorageRepository.uploadFile(userID, file,fileName, filePath)
             }
 
-            return GlobalResponseProvider.new(0, "success", UploadFileResponse(
+            return GlobalResponseProvider.new(0, "success", CapsuleCreateResponse(
                 recipientEmail = recipientEmail,
                 fileName = fileName,
                 fileSize = file.size,
                 filePath = filePath,
-                capsuleId = capsuleID
+                capsuleId = capsuleID,
+                contentType = contentType
             ))
         } catch (e: Exception) {
             return GlobalResponseProvider.failed(-1, "failed to upload file ${e.message}", null)

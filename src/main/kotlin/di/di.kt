@@ -12,6 +12,7 @@ val repositoryModule = module {
     single { UserTokenMapperRepository() }
     single { CapsuleContentRepository() }
     single { RecipientsRepository() }
+    single { TimeCapsuleEncryptionMapperRepository() }
 }
 
 var serviceModule = module {
@@ -23,6 +24,7 @@ var serviceModule = module {
         get(),
         get(),
         get(),
+        get()
     ) }
 }
 

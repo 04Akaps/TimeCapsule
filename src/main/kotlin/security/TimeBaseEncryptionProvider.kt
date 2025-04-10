@@ -1,6 +1,7 @@
 package com.example.security
 
 
+import com.example.common.utils.FormatVerify.toLocalDateTime
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.LocalDateTime
@@ -29,16 +30,20 @@ object TimeBaseEncryptionProvider {
     private const val GCM_TAG_LENGTH = 16 // GCM 인증의 태그 길이
     private val secureRandom = SecureRandom() // 난수 생성
 
-    // TODO masterKey 설정 및 init으로 내부 변수 초기화 로직적용 --> 다른 object 코드에 대해서 동일하게 initialize가 아닌 init을 적용
+    private lateinit var masterKey: ByteArray
 
-    fun encryptWithTimelock(content: String, masterKey: ByteArray, releaseTime: LocalDateTime): TimelockedData {
+    fun initialize(masterKey : ByteArray) {
+        this.masterKey = masterKey
+    }
+
+    fun encryptWithTimelock(content: String, releaseTime: Long): TimelockedData {
         val dataKey = ByteArray(32)
         secureRandom.nextBytes(dataKey)
 
         val timeSalt = ByteArray(16)
         secureRandom.nextBytes(timeSalt)
 
-        val timeKey = generateTimeKey(releaseTime, timeSalt)
+        val timeKey = generateTimeKey(releaseTime.toLocalDateTime(), timeSalt)
 
         val combinedKey = combineKeys(masterKey, timeKey)
 
@@ -49,7 +54,7 @@ object TimeBaseEncryptionProvider {
         return TimelockedData(
             encryptedContent = bytesToBase64(encryptedContent),
             encryptedDataKey = bytesToBase64(encryptedDataKey),
-            releaseTime = releaseTime,
+            releaseTime = releaseTime.toLocalDateTime(),
             timeSalt = bytesToBase64(timeSalt)
         )
     }
