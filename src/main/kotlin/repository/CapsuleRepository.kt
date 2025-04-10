@@ -4,15 +4,37 @@ import com.example.common.database.DatabaseProvider
 import com.example.common.utils.FormatVerify.toLocalDateTime
 import com.example.security.UlidProvider
 import com.example.types.storage.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.update
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.Instant
 import java.time.ZoneOffset
 
 class CapsuleRepository {
+
+    fun changeCapsuleSealStatus(capsuleId: String,  status: CapsuleStatus) {
+        TimeCapsules.update( { TimeCapsules.id eq capsuleId }) {
+            it[TimeCapsules.status] = status
+        }
+    }
+
+    fun getOpenDateByCapsuleId(capsuleId : String) : LocalDateTime? {
+        val query = TimeCapsules.slice(
+            TimeCapsules.id,
+            TimeCapsules.scheduledOpenDate
+        ).select {TimeCapsules.id.eq(capsuleId) }
+
+        if (query.empty()) {
+            return null
+        }
+
+        val capsuleRow = query.first()
+        return capsuleRow[TimeCapsules.scheduledOpenDate].toLocalDateTime()
+    }
 
     fun capsuleWithContentsAndRecipient(capsuleId : String) : TimeCapsuleByCapsuleIdStorage? {
         val query = TimeCapsules

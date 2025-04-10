@@ -9,6 +9,7 @@ import com.example.common.utils.postWithBinding
 import com.example.routes.capsule.service.CapsuleService
 import com.example.routes.capsule.types.CapsuleDetailRequest
 import com.example.routes.capsule.types.CreateNewCapsuleRequest
+import com.example.routes.capsule.types.OpenCapsuleRequest
 import com.example.security.Intercept
 import com.example.security.PasetoProvider
 import com.example.security.TimeBaseEncryptionProvider
@@ -83,6 +84,12 @@ fun Route.v1CapsuleRoute() {
 
         getWithBinding<CapsuleDetailRequest>("/capsule-detail/{capsuleId}") { req ->
             val response = service.getCapsuleContentById(req.capsuleId)
+            call.respond(HttpStatusCode.OK, response)
+        }
+
+
+        postWithBinding<OpenCapsuleRequest>("/open-capsule") { req ->
+            val response = service.openCapsuleContent(req.capsuleId)
             call.respond(HttpStatusCode.OK, response)
         }
 

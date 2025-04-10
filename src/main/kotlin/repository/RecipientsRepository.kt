@@ -1,9 +1,9 @@
 package com.example.repository
 
-import com.example.common.database.DatabaseProvider
 import com.example.security.UlidProvider
 import com.example.types.storage.Recipients
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.update
 
 class RecipientsRepository {
 
@@ -22,6 +22,18 @@ class RecipientsRepository {
         }
 
         return id
+    }
+
+
+    fun changeHasViewedAndNotificationSent(
+        capsuleId : String,
+        hasViewed : Boolean,
+        notificationSendSuccess : Boolean
+    ) {
+        Recipients.update({ Recipients.capsuleId eq capsuleId }) {
+            it[Recipients.hasViewed] = hasViewed
+            it[notificationSent] = notificationSendSuccess
+        }
     }
 
 }

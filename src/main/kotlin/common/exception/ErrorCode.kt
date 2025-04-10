@@ -12,6 +12,9 @@ enum class ErrorCode(
     FAILED_TO_HANDLE_FILE(-6, "failed to handle file"),
     FAILED_TO_INIT_STORAGE(-7, "failed to init storage"),
     FAILED_TO_QUERY(-8, "query failed"),
+    NOT_FOUND_CAPSULE(-9, "not found capsule"),
+
+
     LOGIC_EXCEPTIOn(-100, "exception occurred while processing request"),
     FFMPEG_REQUIRED(-101,"ffmpeg required"),
 }

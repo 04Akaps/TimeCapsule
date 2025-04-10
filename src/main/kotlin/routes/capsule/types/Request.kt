@@ -32,3 +32,10 @@ data class CapsuleDetailRequest(
     @RequestInfo(name = "capsuleId", source = RequestSource.PATH, required = true)
     val capsuleId : String,
 )
+
+
+@RequestData
+data class OpenCapsuleRequest(
+    @RequestInfo(name = "capsuleId", source = RequestSource.BODY, required = true)
+    val capsuleId : String,
+)

@@ -7,11 +7,15 @@ import com.example.common.file.FileStorageRepository
 import com.example.common.utils.FormatVerify.toLocalDateTime
 import com.example.repository.*
 import com.example.routes.capsule.types.CapsuleCreateResponse
+import com.example.routes.capsule.types.OpenCapsuleResponse
 import com.example.security.TimeBaseEncryptionProvider
 import com.example.types.response.GlobalResponse
 import com.example.types.response.GlobalResponseProvider
+import com.example.types.storage.CapsuleStatus
 import com.example.types.storage.ContentType
 import com.example.types.wire.CapsuleWire
+import org.jetbrains.exposed.sql.Database
+import java.time.LocalDateTime
 
 
 class CapsuleService(
@@ -22,8 +26,27 @@ class CapsuleService(
     private val timeCapsuleEncryptionMapperRepository: TimeCapsuleEncryptionMapperRepository
 ) {
 
-    suspend fun getCapsuleContentById(capsuleId : String) : GlobalResponse<CapsuleWire?> {
+    suspend fun openCapsuleContent(capsuleId : String) : GlobalResponse<OpenCapsuleResponse> {
+        val scheduledOpenDate = DatabaseProvider.dbQuery {
+            capsuleRepository.getOpenDateByCapsuleId(capsuleId)
+        } ?: throw  CustomException(ErrorCode.NOT_FOUND_CAPSULE, capsuleId)
 
+        if (scheduledOpenDate < LocalDateTime.now()) {
+            return GlobalResponseProvider.new(-1, "open capsule failed to open", null)
+        }
+
+        // TODO SES를 사용??
+        val notiSended  = false
+
+        DatabaseProvider.dbQuery {
+            capsuleRepository.changeCapsuleSealStatus(capsuleId, CapsuleStatus.opened)
+            recipientsRepository.changeHasViewedAndNotificationSent(capsuleId, false, notiSended)
+        }
+
+        return GlobalResponseProvider.new(0, "", null)
+    }
+
+    suspend fun getCapsuleContentById(capsuleId : String) : GlobalResponse<CapsuleWire?> {
         try {
             val result = DatabaseProvider.dbQuery {
                 capsuleRepository.capsuleWithContentsAndRecipient(capsuleId)?.toWire()
@@ -39,17 +62,6 @@ class CapsuleService(
         return userRepository.existsByEmail(email)
     }
 
-    suspend fun handlingTimebaseEncryptionMapper(encryptedDataKey : String, timeSalt : String) : GlobalResponse<CapsuleCreateResponse>? {
-        try {
-            DatabaseProvider.dbQuery {
-                timeCapsuleEncryptionMapperRepository.create(encryptedDataKey, timeSalt)
-            }
-            return null
-        } catch (e : Exception) {
-            return GlobalResponseProvider.failed(-1, "failed to content ${e.message}", null)
-        }
-    }
-
     suspend fun handlingTextContent(
         contentType: ContentType,
         recipientEmail: String,
@@ -59,8 +71,6 @@ class CapsuleService(
         description : String,
         openData : Long,
     ) : GlobalResponse<CapsuleCreateResponse> {
-
-
 
         try {
             val encryptedData = TimeBaseEncryptionProvider.encryptWithTimelock(content, openData)
