@@ -1,14 +1,10 @@
 package com.example.common.email
 
-import io.ktor.server.config.*
 import org.slf4j.LoggerFactory
 
 class EmailServiceFactory {
     private val logger = LoggerFactory.getLogger(EmailServiceFactory::class.java)
 
-    /**
-     * 설정에 기반하여 적합한 이메일 서비스 구현체 생성
-     */
     fun create(config: EmailConfig): EmailService {
         logger.info("이메일 서비스 생성: 유형=${config.provider}")
 

@@ -3,6 +3,7 @@ package com.example.repository
 import com.example.security.UlidProvider
 import com.example.types.storage.Recipients
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.update
 
 class RecipientsRepository {
@@ -34,6 +35,12 @@ class RecipientsRepository {
             it[Recipients.hasViewed] = hasViewed
             it[notificationSent] = notificationSendSuccess
         }
+    }
+
+    fun getRecipientsByCapsuleId(capsuleId: String) : String {
+        val query = Recipients.slice(Recipients.recipientEmail).select({Recipients.id.eq(capsuleId)})
+        val result = query.first().get(Recipients.recipientEmail)
+        return result
     }
 
 }

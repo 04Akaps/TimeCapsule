@@ -1,6 +1,7 @@
 package com.example.routes.capsule.service
 
 import com.example.common.database.DatabaseProvider
+import com.example.common.email.EmailService
 import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import com.example.common.file.FileStorageRepository
@@ -14,8 +15,8 @@ import com.example.types.response.GlobalResponseProvider
 import com.example.types.storage.CapsuleStatus
 import com.example.types.storage.ContentType
 import com.example.types.wire.CapsuleWire
-import org.jetbrains.exposed.sql.Database
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class CapsuleService(
@@ -23,27 +24,59 @@ class CapsuleService(
     private val recipientsRepository: RecipientsRepository,
     private val capsuleRepository: CapsuleRepository,
     private val userRepository: UserRepository,
-    private val timeCapsuleEncryptionMapperRepository: TimeCapsuleEncryptionMapperRepository
+    private val timeCapsuleEncryptionMapperRepository: TimeCapsuleEncryptionMapperRepository,
+    private val emailService: EmailService
 ) {
 
     suspend fun openCapsuleContent(capsuleId : String) : GlobalResponse<OpenCapsuleResponse> {
-        val scheduledOpenDate = DatabaseProvider.dbQuery {
-            capsuleRepository.getOpenDateByCapsuleId(capsuleId)
-        } ?: throw  CustomException(ErrorCode.NOT_FOUND_CAPSULE, capsuleId)
 
-        if (scheduledOpenDate < LocalDateTime.now()) {
-            return GlobalResponseProvider.new(-1, "open capsule failed to open", null)
+        try {
+            val scheduledOpenDate = DatabaseProvider.dbQuery {
+                capsuleRepository.getOpenDateByCapsuleId(capsuleId)
+            } ?: throw  CustomException(ErrorCode.NOT_FOUND_CAPSULE, capsuleId)
+
+            if (scheduledOpenDate < LocalDateTime.now()) {
+                return GlobalResponseProvider.new(-1, "open capsule failed to open", null)
+            }
+
+            val recipientsEmail = DatabaseProvider.dbQuery {
+                recipientsRepository.getRecipientsByCapsuleId(capsuleId)
+            }
+            var notiSended  = false
+
+            try {
+                emailService.sendEmail(
+                    recipientsEmail,
+                    "Your Time Capsule is opend!!",
+                    """
+                    <html>
+                    <body>
+                        <h1>Your Time Capsule Is Ready!</h1>
+                        <p>Great news! The time capsule is now available to open.</p>
+                        <p>This capsule was sealed on ${scheduledOpenDate.format(DateTimeFormatter.ISO_LOCAL_DATE)} 
+                        and contains memories waiting for you to rediscover.</p>
+                        <p>Enjoy your journey back in time!</p>
+                        <p>Best regards,<br>The Time Capsule Team</p>
+                    </body>
+                    </html>
+                    """.trimIndent()
+                )
+
+                notiSended = true
+            } catch (e : Exception) {
+                TODO() // log
+            }
+
+            DatabaseProvider.dbQuery {
+                capsuleRepository.changeCapsuleSealStatus(capsuleId, CapsuleStatus.opened)
+                recipientsRepository.changeHasViewedAndNotificationSent(capsuleId, false, notiSended)
+            }
+
+            return GlobalResponseProvider.new(0, "", null)
+        } catch (e: Exception) {
+            return GlobalResponseProvider.failed(-1, e.message.toString(), null)
         }
 
-        // TODO SES를 사용??
-        val notiSended  = false
-
-        DatabaseProvider.dbQuery {
-            capsuleRepository.changeCapsuleSealStatus(capsuleId, CapsuleStatus.opened)
-            recipientsRepository.changeHasViewedAndNotificationSent(capsuleId, false, notiSended)
-        }
-
-        return GlobalResponseProvider.new(0, "", null)
     }
 
     suspend fun getCapsuleContentById(capsuleId : String) : GlobalResponse<CapsuleWire?> {
