@@ -13,6 +13,7 @@ enum class ErrorCode(
     FAILED_TO_INIT_STORAGE(-7, "failed to init storage"),
     FAILED_TO_QUERY(-8, "query failed"),
     NOT_FOUND_CAPSULE(-9, "not found capsule"),
+    NOT_FOUND_ENCRYPTION(-10, "not found encryption mapper"),
 
 
     LOGIC_EXCEPTIOn(-100, "exception occurred while processing request"),

@@ -38,7 +38,7 @@ class RecipientsRepository {
     }
 
     fun getRecipientsByCapsuleId(capsuleId: String) : String {
-        val query = Recipients.slice(Recipients.recipientEmail).select({Recipients.id.eq(capsuleId)})
+        val query = Recipients.slice(Recipients.recipientEmail).select({Recipients.capsuleId.eq(capsuleId)})
         val result = query.first().get(Recipients.recipientEmail)
         return result
     }

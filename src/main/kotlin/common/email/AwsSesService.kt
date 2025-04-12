@@ -45,9 +45,14 @@ class AwsSesService(
     }
 
     override fun shutdown() {
-        TODO("Not yet implemented")
+        try {
+            logger.info("AWS SES 서비스 종료 중...")
+            sesClient.close()
+            logger.info("AWS SES 서비스가 정상적으로 종료되었습니다.")
+        } catch (e: Exception) {
+            logger.error("AWS SES 서비스 종료 중 오류 발생: ${e.message}", e)
+        }
     }
-
 
     @Throws(EmailException::class)
     private fun sendEmailInternal(

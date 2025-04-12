@@ -8,6 +8,7 @@ import com.example.security.PBFDK2Provider
 import com.example.security.PasetoProvider
 import com.example.security.TimeBaseEncryptionProvider
 import io.ktor.server.application.*
+import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import java.util.*
 
@@ -47,7 +48,12 @@ fun Application.initialize() {
     timebaseEncryptionInitialize(environment)
 
     install(Koin) {
-        modules(appModule)
+        modules(
+            module {
+                single { environment }
+            },
+            appModule
+        )
     }
 }
 

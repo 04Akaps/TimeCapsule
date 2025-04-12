@@ -10,6 +10,7 @@ import com.example.repository.*
 import com.example.routes.capsule.types.CapsuleCreateResponse
 import com.example.routes.capsule.types.OpenCapsuleResponse
 import com.example.security.TimeBaseEncryptionProvider
+import com.example.security.TimelockedData
 import com.example.types.response.GlobalResponse
 import com.example.types.response.GlobalResponseProvider
 import com.example.types.storage.CapsuleStatus
@@ -33,7 +34,7 @@ class CapsuleService(
         try {
             val scheduledOpenDate = DatabaseProvider.dbQuery {
                 capsuleRepository.getOpenDateByCapsuleId(capsuleId)
-            } ?: throw  CustomException(ErrorCode.NOT_FOUND_CAPSULE, capsuleId)
+            } ?: throw CustomException(ErrorCode.NOT_FOUND_CAPSULE, capsuleId)
 
             if (scheduledOpenDate < LocalDateTime.now()) {
                 return GlobalResponseProvider.new(-1, "open capsule failed to open", null)
@@ -42,8 +43,10 @@ class CapsuleService(
             val recipientsEmail = DatabaseProvider.dbQuery {
                 recipientsRepository.getRecipientsByCapsuleId(capsuleId)
             }
+
             var notiSended  = false
 
+            // TODO -> 이렇게 처리 할꺼면 사실 코루틴으로 처리하고 update 처리해도 무방하지 않을까 생각
             try {
                 emailService.sendEmail(
                     recipientsEmail,
@@ -64,17 +67,32 @@ class CapsuleService(
 
                 notiSended = true
             } catch (e : Exception) {
-                TODO() // log
+                println("Failed To Send Message : ${e.message}")
             }
 
+            val (key, data, timeSalt) = DatabaseProvider.dbQuery {
+                timeCapsuleEncryptionMapperRepository.getTimeLockDataWhenOpen(capsuleId)
+            } ?: throw CustomException(ErrorCode.NOT_FOUND_ENCRYPTION, capsuleId)
+            
+            
+            val timeLockData = TimelockedData(
+                encryptedContent = data,
+                encryptedDataKey = key,
+                releaseTime = scheduledOpenDate,
+                timeSalt = timeSalt
+            )
+
+            val decryptedContent = TimeBaseEncryptionProvider.decryptWithTimelock(timeLockData)
+
             DatabaseProvider.dbQuery {
+                capsuleContentRepository.changeCapsuleContent(capsuleId, decryptedContent)
                 capsuleRepository.changeCapsuleSealStatus(capsuleId, CapsuleStatus.opened)
                 recipientsRepository.changeHasViewedAndNotificationSent(capsuleId, false, notiSended)
             }
 
             return GlobalResponseProvider.new(0, "", null)
         } catch (e: Exception) {
-            return GlobalResponseProvider.failed(-1, e.message.toString(), null)
+            return GlobalResponseProvider.failed(-1, "Failed to open Capsule Content : ${e.message}", null)
         }
 
     }

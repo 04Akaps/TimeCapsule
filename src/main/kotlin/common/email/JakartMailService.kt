@@ -16,8 +16,6 @@ class JakartaMailService(
     private val password: String,
     private val fromEmail: String,
     private val fromName: String,
-    private val connectionTimeout: Int,
-    private val timeout: Int,
 ) : EmailService {
 
     private val logger = LoggerFactory.getLogger(JakartaMailService::class.java)
@@ -25,6 +23,20 @@ class JakartaMailService(
 
     override fun sendEmail(to: String, subject: String, body: String) {
         sendEmailInternal(to, subject, body)
+    }
+
+    override fun shutdown() {
+        try {
+            logger.info("Jakarta Mail 서비스 종료 중...")
+            emailExecutor.shutdown()
+            if (!emailExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                emailExecutor.shutdownNow()
+            }
+            logger.info("Jakarta Mail 서비스가 정상적으로 종료되었습니다.")
+        } catch (e: Exception) {
+            logger.error("Jakarta Mail 서비스 종료 중 오류 발생: ${e.message}", e)
+            emailExecutor.shutdownNow()
+        }
     }
 
     @Throws(EmailException::class)
@@ -37,8 +49,6 @@ class JakartaMailService(
             put("mail.smtp.host", host)
             put("mail.smtp.port", port)
             put("mail.smtp.auth", "true")
-            put("mail.smtp.connectiontimeout", connectionTimeout.toString())
-            put("mail.smtp.timeout", timeout.toString())
         }
 
         val session = Session.getInstance(properties, object : Authenticator() {
@@ -61,18 +71,6 @@ class JakartaMailService(
         } catch (e: Exception) {
             logger.error("Failed to send email: ${e.message}", e)
             throw EmailException("Failed to send email: ${e.message}", e)
-        }
-    }
-
-
-    override fun shutdown() {
-        emailExecutor.shutdown()
-        try {
-            if (!emailExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                emailExecutor.shutdownNow()
-            }
-        } catch (e: InterruptedException) {
-            emailExecutor.shutdownNow()
         }
     }
 

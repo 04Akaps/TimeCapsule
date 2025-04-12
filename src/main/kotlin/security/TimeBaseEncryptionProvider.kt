@@ -59,7 +59,7 @@ object TimeBaseEncryptionProvider {
         )
     }
 
-    fun decryptWithTimelock(timelockedData: TimelockedData, masterKey: ByteArray): String {
+    fun decryptWithTimelock(timelockedData: TimelockedData): String {
         try {
             val timeKey = generateTimeKey(timelockedData.releaseTime, base64ToBytes(timelockedData.timeSalt))
 

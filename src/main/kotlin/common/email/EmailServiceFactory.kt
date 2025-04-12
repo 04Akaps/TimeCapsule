@@ -8,34 +8,36 @@ class EmailServiceFactory {
     fun create(config: EmailConfig): EmailService {
         logger.info("이메일 서비스 생성: 유형=${config.provider}")
 
-        return when (config.provider) {
-            EmailProviderType.JAKARTA_MAIL -> {
-                val jmConfig = config.jakartaMail
-                    ?: throw IllegalStateException("Jakarta Mail 설정이 누락되었습니다")
+        try {
+            return when (config.provider) {
+                EmailProviderType.JAKARTA_MAIL -> {
+                    val jmConfig = config.jakartaMail
+                        ?: throw IllegalStateException("Jakarta Mail 설정이 누락되었습니다")
 
-                JakartaMailService(
-                    host = jmConfig.host,
-                    port = jmConfig.port,
-                    username = jmConfig.username,
-                    password = jmConfig.password,
-                    fromEmail = config.fromEmail,
-                    fromName = config.fromName,
-                    connectionTimeout = jmConfig.connectionTimeout,
-                    timeout = jmConfig.timeout,
-                )
+                    JakartaMailService(
+                        host = jmConfig.host,
+                        port = jmConfig.port,
+                        username = jmConfig.username,
+                        password = jmConfig.password,
+                        fromEmail = config.fromEmail,
+                        fromName = config.fromName,
+                    )
+                }
+
+                EmailProviderType.AWS_SES -> {
+                    val sesConfig = config.awsSes
+                        ?: throw IllegalStateException("AWS SES 설정이 누락되었습니다")
+
+                    AwsSesService(
+                        fromEmail = config.fromEmail,
+                        region = sesConfig.region,
+                        accessKey = sesConfig.accessKey,
+                        accessKeySecret = sesConfig.secretKey
+                    )
+                }
             }
-
-            EmailProviderType.AWS_SES -> {
-                val sesConfig = config.awsSes
-                    ?: throw IllegalStateException("AWS SES 설정이 누락되었습니다")
-
-                AwsSesService(
-                    fromEmail = config.fromEmail,
-                    region = sesConfig.region,
-                    accessKey = sesConfig.accessKey,
-                    accessKeySecret = sesConfig.secretKey
-                )
-            }
+        } catch (e: Exception) {
+            throw RuntimeException("이메일 서비스 생성 중 오류 발생: ${e.message}", e)
         }
     }
 }
