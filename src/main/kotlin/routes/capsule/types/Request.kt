@@ -23,7 +23,7 @@ data class CreateNewCapsuleRequest(
     val recipients : String,
 
     @RequestInfo(name = "openDate", source = RequestSource.BODY, required = true)
-    val scheduledOpenDate : Long
+    val scheduledOpenDate : Int
 )
 
 

@@ -1,12 +1,10 @@
 package com.example.types.wire
 
-import java.time.LocalDateTime
-
 data class CapsuleWire(
     val id: String,
     val title: String,
     val description: String?,
-    val scheduledOpenDate: LocalDateTime,
+    val scheduledOpenDate: Int,
     val status: String,
 
     val contentType: String,

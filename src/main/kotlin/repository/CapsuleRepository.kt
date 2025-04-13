@@ -1,18 +1,11 @@
 package com.example.repository
 
-import com.example.common.database.DatabaseProvider
-import com.example.common.utils.FormatVerify.toLocalDateTime
 import com.example.security.UlidProvider
 import com.example.types.storage.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.update
-import java.math.BigDecimal
-import java.time.LocalDateTime
-import java.time.Instant
-import java.time.ZoneOffset
 
 class CapsuleRepository {
 
@@ -22,7 +15,7 @@ class CapsuleRepository {
         }
     }
 
-    fun getOpenDateByCapsuleId(capsuleId : String) : LocalDateTime? {
+    fun getOpenDateByCapsuleId(capsuleId : String) : Int? {
         val query = TimeCapsules.slice(
             TimeCapsules.id,
             TimeCapsules.scheduledOpenDate
@@ -33,7 +26,7 @@ class CapsuleRepository {
         }
 
         val capsuleRow = query.first()
-        return capsuleRow[TimeCapsules.scheduledOpenDate].toLocalDateTime()
+        return capsuleRow[TimeCapsules.scheduledOpenDate]
     }
 
     fun capsuleWithContentsAndRecipient(capsuleId : String) : TimeCapsuleByCapsuleIdStorage? {
@@ -65,7 +58,7 @@ class CapsuleRepository {
             id = capsuleRow[TimeCapsules.id],
             title = capsuleRow[TimeCapsules.title],
             description = capsuleRow[TimeCapsules.description],
-            scheduledOpenDate = capsuleRow[TimeCapsules.scheduledOpenDate].toLocalDateTime(),
+            scheduledOpenDate = capsuleRow[TimeCapsules.scheduledOpenDate],
             status = capsuleRow[TimeCapsules.status].toString(),
             contentType = capsuleRow[CapsuleContents.contentType].name,
             content = capsuleRow[CapsuleContents.content],
@@ -78,13 +71,11 @@ class CapsuleRepository {
         creatorId: String,
         title: String,
         description: String = "",
-        scheduledOpenDate: LocalDateTime,
-        locationLat: BigDecimal? = null,
-        locationLng: BigDecimal? = null,
+        scheduledOpenDate: Int,
         status: CapsuleStatus = CapsuleStatus.sealed,
     ) : String {
         val id = UlidProvider.capsuleId()
-        val nowInstant = Instant.now()
+        val now = (System.currentTimeMillis() / 1000).toInt()
 
         TimeCapsules.insert {
             it[TimeCapsules.id] = id
@@ -92,13 +83,10 @@ class CapsuleRepository {
             it[TimeCapsules.title] = title
             it[TimeCapsules.description] = description
 
-            it[creationDate] = nowInstant
-            it[TimeCapsules.scheduledOpenDate] = scheduledOpenDate.toInstant(ZoneOffset.UTC)
+            it[creationDate] = now
+            it[TimeCapsules.scheduledOpenDate] = scheduledOpenDate
 
             it[TimeCapsules.status] = status
-
-            it[TimeCapsules.locationLat] = locationLat
-            it[TimeCapsules.locationLng] = locationLng
         }
 
 

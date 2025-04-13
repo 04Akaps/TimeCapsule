@@ -1,11 +1,8 @@
 package com.example.security
 
 
-import com.example.common.utils.FormatVerify.toLocalDateTime
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
@@ -21,7 +18,7 @@ import javax.crypto.spec.SecretKeySpec
 data class TimelockedData(
     val encryptedContent: String, // 데이터 키로 암호화되는 실제 컨텐츠
     val encryptedDataKey: String, // 마스터 키와, 시간 기반의 키의 조합으로 암호화 시킨 키
-    val releaseTime: LocalDateTime, // 가능 시간
+    val releaseTime: Int, // 가능 시간
     val timeSalt: String // 암호화마다 설정되는 고유한 salt 값
 )
 
@@ -36,25 +33,26 @@ object TimeBaseEncryptionProvider {
         this.masterKey = masterKey
     }
 
-    fun encryptWithTimelock(content: String, releaseTime: Long): TimelockedData {
+    fun encryptWithTimelock(content: String, releaseTime: Int): TimelockedData {
         val dataKey = ByteArray(32)
         secureRandom.nextBytes(dataKey)
 
         val timeSalt = ByteArray(16)
         secureRandom.nextBytes(timeSalt)
 
-        val timeKey = generateTimeKey(releaseTime.toLocalDateTime(), timeSalt)
+        val timeKey = generateTimeKey(releaseTime, timeSalt)
 
         val combinedKey = combineKeys(masterKey, timeKey)
 
         val encryptedDataKey = encryptAES(dataKey, combinedKey)
 
         val encryptedContent = encryptAES(content.toByteArray(Charsets.UTF_8), dataKey)
+        val now = (System.currentTimeMillis() / 1000).toInt()
 
         return TimelockedData(
             encryptedContent = bytesToBase64(encryptedContent),
             encryptedDataKey = bytesToBase64(encryptedDataKey),
-            releaseTime = releaseTime.toLocalDateTime(),
+            releaseTime = now,
             timeSalt = bytesToBase64(timeSalt)
         )
     }
@@ -115,9 +113,8 @@ object TimeBaseEncryptionProvider {
         return Base64.getDecoder().decode(base64)
     }
 
-    private fun generateTimeKey(releaseTime: LocalDateTime, salt: ByteArray): ByteArray {
-        val epochSeconds = releaseTime.toEpochSecond(ZoneOffset.UTC)
-        val timeBytes = epochSeconds.toString().toByteArray(Charsets.UTF_8)
+    private fun generateTimeKey(releaseTime: Int, salt: ByteArray): ByteArray {
+        val timeBytes = releaseTime.toString().toByteArray(Charsets.UTF_8)
 
         val md = MessageDigest.getInstance("SHA-256")
         md.update(timeBytes)

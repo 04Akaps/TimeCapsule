@@ -1,13 +1,8 @@
 package com.example.repository
 
-import com.example.common.utils.FormatVerify.toLocalDateTime
-import com.example.security.TimelockedData
+
 import com.example.security.UlidProvider
 import com.example.types.storage.CapsuleContents
-import com.example.types.storage.Recipients
-import com.example.types.storage.TimeCapsuleByCapsuleIdStorage
-import com.example.types.storage.TimeCapsules
-import com.example.types.storage.TimeCapsules.id
 import com.example.types.storage.TimebaseEncryptionMapper
 import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.insert
@@ -16,12 +11,14 @@ import org.jetbrains.exposed.sql.select
 class TimeCapsuleEncryptionMapperRepository {
 
     fun create(
+        capsuldID : String,
         encryptedDataKey : String,
         timeSalt : String,
     ) : String {
         val id = UlidProvider.timeCapsuleEncryptionMapper()
 
         TimebaseEncryptionMapper.insert {
+            it[capsuleId] = capsuldID
             it[TimebaseEncryptionMapper.id] = id
             it[TimebaseEncryptionMapper.encryptedDataKey] = encryptedDataKey
             it[TimebaseEncryptionMapper.timeSalt] = timeSalt

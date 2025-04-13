@@ -2,7 +2,6 @@ package com.example.types.storage
 
 import com.example.types.wire.CapsuleWire
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.LocalDateTime
 
 object TimeCapsules : Table(name = "time_capsules") {
@@ -10,11 +9,9 @@ object TimeCapsules : Table(name = "time_capsules") {
     val creator_id = varchar("creator_id", 100).references(Users.id)
     val title = varchar("title", 100)
     val description = text("description").nullable()
-    val creationDate = timestamp("creation_date")
-    val scheduledOpenDate = timestamp("scheduled_open_date")
+    val creationDate = integer("creation_date")
+    val scheduledOpenDate = integer("scheduled_open_date")
     val status = enumerationByName("status", 10, CapsuleStatus::class)
-    val locationLat = decimal("location_lat", 10, 8).nullable()
-    val locationLng = decimal("location_lng", 11, 8).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -27,7 +24,7 @@ data class TimeCapsuleByCapsuleIdStorage(
     val id: String,
     val title: String,
     val description: String?,
-    val scheduledOpenDate: LocalDateTime,
+    val scheduledOpenDate: Int,
     val status: String,
 
     val contentType: String,

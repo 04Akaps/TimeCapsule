@@ -5,7 +5,6 @@ import com.example.common.email.EmailService
 import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import com.example.common.file.FileStorageRepository
-import com.example.common.utils.FormatVerify.toLocalDateTime
 import com.example.repository.*
 import com.example.routes.capsule.types.CapsuleCreateResponse
 import com.example.routes.capsule.types.OpenCapsuleResponse
@@ -16,8 +15,6 @@ import com.example.types.response.GlobalResponseProvider
 import com.example.types.storage.CapsuleStatus
 import com.example.types.storage.ContentType
 import com.example.types.wire.CapsuleWire
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 
 class CapsuleService(
@@ -36,7 +33,7 @@ class CapsuleService(
                 capsuleRepository.getOpenDateByCapsuleId(capsuleId)
             } ?: throw CustomException(ErrorCode.NOT_FOUND_CAPSULE, capsuleId)
 
-            if (scheduledOpenDate < LocalDateTime.now()) {
+            if (scheduledOpenDate < System.currentTimeMillis() / 1000) {
                 return GlobalResponseProvider.new(-1, "open capsule failed to open", null)
             }
 
@@ -56,7 +53,7 @@ class CapsuleService(
                     <body>
                         <h1>Your Time Capsule Is Ready!</h1>
                         <p>Great news! The time capsule is now available to open.</p>
-                        <p>This capsule was sealed on ${scheduledOpenDate.format(DateTimeFormatter.ISO_LOCAL_DATE)} 
+                        <p>This capsule was sealed on ${scheduledOpenDate} 
                         and contains memories waiting for you to rediscover.</p>
                         <p>Enjoy your journey back in time!</p>
                         <p>Best regards,<br>The Time Capsule Team</p>
@@ -81,6 +78,8 @@ class CapsuleService(
                 releaseTime = scheduledOpenDate,
                 timeSalt = timeSalt
             )
+
+            println("data : ${data}, key : $key, timeSalt : $timeSalt")
 
             val decryptedContent = TimeBaseEncryptionProvider.decryptWithTimelock(timeLockData)
 
@@ -120,7 +119,7 @@ class CapsuleService(
         title : String,
         content : String,
         description : String,
-        openData : Long,
+        openData : Int,
     ) : GlobalResponse<CapsuleCreateResponse> {
 
         try {
@@ -128,9 +127,8 @@ class CapsuleService(
             var capsuleID = ""
 
             DatabaseProvider.dbQuery {
-                timeCapsuleEncryptionMapperRepository.create(encryptedData.encryptedDataKey, encryptedData.timeSalt)
-
-                capsuleID = capsuleRepository.createCapsule(userID, title, description, openData.toLocalDateTime())
+                capsuleID = capsuleRepository.createCapsule(userID, title, description, openData)
+                timeCapsuleEncryptionMapperRepository.create(capsuleID, encryptedData.encryptedDataKey, encryptedData.timeSalt)
                 capsuleContentRepository.createCapsuleContent(capsuleID, contentType, encryptedData.encryptedContent)
                 recipientsRepository.create(capsuleID, recipientEmail)
             }
@@ -152,7 +150,7 @@ class CapsuleService(
         title: String,
         content: String,
         description: String,
-        openData: Long,
+        openData: Int,
         file: ByteArray,
         fileName: String
     ) : GlobalResponse<CapsuleCreateResponse> {
@@ -162,13 +160,14 @@ class CapsuleService(
             var filePath = ""
 
             DatabaseProvider.dbQuery {
-                timeCapsuleEncryptionMapperRepository.create(encryptedData.encryptedDataKey, encryptedData.timeSalt)
 
-                capsuleID = capsuleRepository.createCapsule(userID, title, description, openData.toLocalDateTime())
+                capsuleID = capsuleRepository.createCapsule(userID, title, description, openData)
+
+                timeCapsuleEncryptionMapperRepository.create(capsuleID, encryptedData.encryptedDataKey, encryptedData.timeSalt)
                 capsuleContentRepository.createCapsuleContent(capsuleID, contentType, encryptedData.encryptedContent)
                 recipientsRepository.create(capsuleID, recipientEmail)
 
-                // File UPload하는 시간이 길어지면, tranasction connection이 계속 열려있는데.. 괜찮을까?
+                // File UPload하는 시간이 길어지면, tranasction connection이 계속 열려있는데.. 영속성을 위해서라지만 이게 맞을까? 대용량 트래픽 처리 고민
                 filePath = FileStorageRepository.filePathMaker(userID, fileName, title)
                 FileStorageRepository.uploadFile(userID, file,fileName, filePath)
             }

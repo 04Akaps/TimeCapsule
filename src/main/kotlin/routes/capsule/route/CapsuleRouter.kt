@@ -90,7 +90,15 @@ fun Route.v1CapsuleRoute() {
 
         postWithBinding<OpenCapsuleRequest>("/open-capsule") { req ->
             val response = service.openCapsuleContent(req.capsuleId)
-            call.respond(HttpStatusCode.OK, response)
+
+            when (response.code) {
+                0 -> {
+                    call.respond(HttpStatusCode.OK, response)
+                }
+                else -> {
+                    call.respond(HttpStatusCode.InternalServerError, response)
+                }
+            }
         }
 
     }

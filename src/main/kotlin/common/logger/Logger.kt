@@ -10,7 +10,7 @@ object Logging {
 
     fun <T> loggingStopWatch(logger: Logger, function: (MutableMap<String, Any>) -> T?): T? {
         val logData = mutableMapOf<String, Any>()
-        logData["startAt"] = System.currentTimeMillis()
+        logData["startAt"] = System.currentTimeMillis() / 1000
         var result : T? = null
 
         try {
@@ -18,7 +18,7 @@ object Logging {
         } catch (e : CustomException) {
             logData["error"] = e.message ?: ""
         } finally {
-            logData["endAt"] = System.currentTimeMillis()
+            logData["endAt"] = System.currentTimeMillis() / 1000
             logger.info(logData.toString())
         }
 

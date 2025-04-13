@@ -16,16 +16,9 @@ object FormatVerify{
         }
     }
 
-    fun validateFutureDate(scheduledOpenDate: Long): Boolean {
-        val currentTimeSeconds = Instant.now().epochSecond
-        return scheduledOpenDate > currentTimeSeconds
+    fun validateFutureDate(scheduledOpenDate: Int): Boolean {
+        val currentEpochTimeInSeconds = System.currentTimeMillis() / 1000
+        return scheduledOpenDate > currentEpochTimeInSeconds
     }
-
-    fun Long.toLocalDateTime(): LocalDateTime {
-        return LocalDateTime.ofInstant(Instant.ofEpochSecond(this), ZoneId.systemDefault())
-    }
-
-    fun Instant.toLocalDateTime(): LocalDateTime =
-        LocalDateTime.ofInstant(this, ZoneOffset.systemDefault())
 
 }

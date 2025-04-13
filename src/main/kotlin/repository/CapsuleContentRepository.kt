@@ -18,7 +18,7 @@ class CapsuleContentRepository {
         content: String,
     ) : String {
         val id = UlidProvider.contentId()
-        val now = Instant.now()
+        val now = (System.currentTimeMillis() / 1000).toInt()
 
         CapsuleContents.insert {
             it[CapsuleContents.id] = id

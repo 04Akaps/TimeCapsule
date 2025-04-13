@@ -45,12 +45,6 @@ class UserRepository {
             .count() > 0
     }
 
-    suspend fun updateLastLogin(id: String, loginTime: LocalDateTime): Boolean = DatabaseProvider.dbQuery {
-        Users.update({ Users.id eq id }) {
-            it[lastLogin] = loginTime.atZone(ZoneId.systemDefault()).toInstant()
-        } > 0
-    }
-
     suspend fun delete(id: String): Boolean =  DatabaseProvider.dbQuery {
         Users.deleteWhere { Users.id eq id } > 0
     }
@@ -59,9 +53,8 @@ class UserRepository {
         UserWire(
             id = row[Users.id],
             email = row[Users.email],
-            createdAt = row[Users.createdAt].atZone(ZoneId.systemDefault()).toLocalDateTime(),
-            updatedAt = row[Users.updatedAt].atZone(ZoneId.systemDefault()).toLocalDateTime(),
-            lastLogin = row[Users.lastLogin]?.atZone(ZoneId.systemDefault())?.toLocalDateTime(),
+            createdAt = row[Users.createdAt],
+            updatedAt = row[Users.updatedAt],
             isActive = row[Users.isActive],
             passwordHash = row[Users.passwordHash]
         )
