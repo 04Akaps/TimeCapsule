@@ -49,6 +49,16 @@ class JakartaMailService(
             put("mail.smtp.host", host)
             put("mail.smtp.port", port)
             put("mail.smtp.auth", "true")
+            
+            // TLS 설정 추가
+            put("mail.smtp.starttls.enable", "true")
+            put("mail.smtp.starttls.required", "true")
+            
+            // 디버깅 활성화 (필요시 로그 확인용)
+            put("mail.debug", "true")
+            
+            // 추가 보안 설정
+            put("mail.smtp.ssl.protocols", "TLSv1.2")
         }
 
         val session = Session.getInstance(properties, object : Authenticator() {
@@ -63,7 +73,8 @@ class JakartaMailService(
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to))
             message.subject = subject
             message.sentDate = Date()
-            message.setText(body, "utf-8")
+
+            message.setContent(body, "text/html; charset=utf-8")
 
             Transport.send(message)
 

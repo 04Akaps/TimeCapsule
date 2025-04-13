@@ -5,6 +5,7 @@ import com.example.common.email.EmailService
 import com.example.common.exception.CustomException
 import com.example.common.exception.ErrorCode
 import com.example.common.file.FileStorageRepository
+import com.example.common.utils.FormatVerify
 import com.example.repository.*
 import com.example.routes.capsule.types.CapsuleCreateResponse
 import com.example.routes.capsule.types.OpenCapsuleResponse
@@ -15,6 +16,9 @@ import com.example.types.response.GlobalResponseProvider
 import com.example.types.storage.CapsuleStatus
 import com.example.types.storage.ContentType
 import com.example.types.wire.CapsuleWire
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
 
 
 class CapsuleService(
@@ -33,8 +37,8 @@ class CapsuleService(
                 capsuleRepository.getOpenDateByCapsuleId(capsuleId)
             } ?: throw CustomException(ErrorCode.NOT_FOUND_CAPSULE, capsuleId)
 
-            if (scheduledOpenDate < System.currentTimeMillis() / 1000) {
-                return GlobalResponseProvider.new(-1, "open capsule failed to open", null)
+            if (!FormatVerify.validateFutureDate(scheduledOpenDate)) {
+                return GlobalResponseProvider.new(-1, "not reached schedule open data", null)
             }
 
             val recipientsEmail = DatabaseProvider.dbQuery {
@@ -86,7 +90,7 @@ class CapsuleService(
             DatabaseProvider.dbQuery {
                 capsuleContentRepository.changeCapsuleContent(capsuleId, decryptedContent)
                 capsuleRepository.changeCapsuleSealStatus(capsuleId, CapsuleStatus.opened)
-                recipientsRepository.changeHasViewedAndNotificationSent(capsuleId, false, notiSended)
+                recipientsRepository.changeHasViewedAndNotificationSent(capsuleId, true, notiSended)
             }
 
             return GlobalResponseProvider.new(0, "", null)

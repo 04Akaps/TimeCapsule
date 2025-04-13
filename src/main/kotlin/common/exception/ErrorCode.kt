@@ -14,6 +14,8 @@ enum class ErrorCode(
     FAILED_TO_QUERY(-8, "query failed"),
     NOT_FOUND_CAPSULE(-9, "not found capsule"),
     NOT_FOUND_ENCRYPTION(-10, "not found encryption mapper"),
+    INVALID_REQUEST_DATA(-11, "invalid request"),
+    INVALID_CONTENT_TYPE(-12, "invalid contentType"),
 
 
     LOGIC_EXCEPTIOn(-100, "exception occurred while processing request"),

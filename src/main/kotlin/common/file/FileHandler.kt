@@ -33,14 +33,24 @@ object FileHandler {
         }
     }
 
-    suspend fun exportFileData(forms : MultiPartData) : PartData.FileItem {
+    suspend fun exportFileData(forms : MultiPartData) :  Pair<PartData.FileItem, String>{
         var fileItem: PartData.FileItem? = null
+        var jsonData  = ""
 
         forms.forEachPart { part ->
-            if (part is PartData.FileItem && part.name == "file") {
-                fileItem = part
-            } else {
-                part.dispose() // 다른 파트는 즉시 리소스 해제
+            when {
+                // 파일이고 이름이 'file'인 경우
+                part is PartData.FileItem && part.name == "file" -> {
+                    fileItem = part
+                }
+                // JSON 데이터를 포함하는 폼 항목
+                part is PartData.FormItem && part.name == "jsonData" -> {
+                    jsonData = part.value
+                    part.dispose()
+                }
+                else -> {
+                    part.dispose()
+                }
             }
         }
 
@@ -48,6 +58,10 @@ object FileHandler {
             throw CustomException(ErrorCode.FILE_NOT_FOUND)
         }
 
-        return fileItem as PartData.FileItem
+        if (jsonData.isBlank()) {
+            throw CustomException(ErrorCode.INVALID_REQUEST_DATA, "JSON 데이터가 필요합니다")
+        }
+
+        return Pair(fileItem, jsonData)
     }
 }
