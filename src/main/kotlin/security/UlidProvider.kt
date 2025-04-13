@@ -35,15 +35,15 @@ object UlidProvider {
         return encodedTime.toString()
     }
 
-    fun userId() = generate("usr_")
+    fun userId() = generate("")
 
-    fun capsuleId() = generate("cap_")
+    fun capsuleId() = generate("")
 
-    fun contentId() = generate("cnt_")
+    fun contentId() = generate("")
 
-    fun recipientId() = generate("rcp_")
+    fun recipientId() = generate("")
 
-    fun timeCapsuleEncryptionMapper() = generate("cem_")
+    fun timeCapsuleEncryptionMapper() = generate("")
 
-    fun capsuleFilePathMapper() = generate("cam_")
+    fun capsuleFilePathMapper() = generate("")
 }

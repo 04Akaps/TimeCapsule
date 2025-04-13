@@ -30,10 +30,14 @@ object FileStorageRepository {
 
     private val logger = LoggerFactory.getLogger(FileStorageRepository::class.java)
 
+    private var bucket : String  = "test"
+
     internal fun initialize(
+        bucket : String,
         endPoint: String, access : String, secret : String,
         region: String, type : StorageType
     ) {
+        this.bucket = bucket
         val builder = MinioClient.builder()
             .endpoint(endPoint)
             .credentials(access, secret)
@@ -43,12 +47,14 @@ object FileStorageRepository {
         }
 
         this.client = builder.build()
+        verifyBucket(bucket)
     }
 
-    fun uploadFile(bucketName : String, fileBytes: ByteArray, fileName: String, filePath : String): String {
-        verifyBucket(bucketName)
+    fun uploadFile(fileBytes: ByteArray, fileName: String, filePath : String): String {
 
         val contentType = getContentType(fileName)
+
+        println(contentType)
 
         val optimizedBytes = when {
             contentType.startsWith("image/") -> optimizeImage(fileBytes, fileName)
@@ -59,7 +65,7 @@ object FileStorageRepository {
 
         client.putObject(
             PutObjectArgs.builder()
-                .bucket(bucketName)
+                .bucket(bucket)
                 .`object`(filePath)
                 .stream(ByteArrayInputStream(optimizedBytes), optimizedBytes.size.toLong(), -1)
                 .contentType(getContentType(fileName))
@@ -71,44 +77,44 @@ object FileStorageRepository {
         return fileName
     }
 
-    fun getFileUrl(bucketName : String, filePath: String): String {
+    fun getFileUrl(filePath: String): String {
         return client.getPresignedObjectUrl(
             GetPresignedObjectUrlArgs.builder()
-                .bucket(bucketName)
+                .bucket(bucket)
                 .`object`(filePath)
                 .method(Method.GET)
                 .build()
         )
     }
 
-    fun deleteFile(bucketName : String, filePath: String): Boolean {
+    fun deleteFile(filePath: String): Boolean {
         client.removeObject(
             RemoveObjectArgs.builder()
-                .bucket(bucketName)
+                .bucket(bucket)
                 .`object`(filePath)
                 .build()
         )
         return true
     }
 
-    fun getFileAsStream(bucketName :String, filePath: String): InputStream {
+    fun getFileAsStream(filePath: String): InputStream {
         return client.getObject(
             GetObjectArgs.builder()
-                .bucket(bucketName)
+                .bucket(bucket)
                 .`object`(filePath)
                 .build()
         )
     }
 
-    fun getFileAsByteArray(bucketName :String, filePath: String): ByteArray {
-        val stream = getFileAsStream(bucketName, filePath)
+    fun getFileAsByteArray(filePath: String): ByteArray {
+        val stream = getFileAsStream(filePath)
         return stream.use { it.readBytes() }
     }
 
-    fun getFileMetadata(bucketName :String, filePath: String): StatObjectResponse {
+    fun getFileMetadata(filePath: String): StatObjectResponse {
         return client.statObject(
             StatObjectArgs.builder()
-                .bucket(bucketName)
+                .bucket(bucket)
                 .`object`(filePath)
                 .build()
         )
@@ -153,6 +159,8 @@ object FileStorageRepository {
                 ImageIO.write(resized, formatName, output)
             }
 
+            logger.info("optimize image success [$fileName]")
+
             return output.toByteArray()
         } catch (e: Exception) {
             logger.info("optimize image error: ${e.message}")
@@ -189,6 +197,8 @@ object FileStorageRepository {
                 return fileBytes
             }
 
+            logger.info("optimize video success [$fileName]")
+
             return Files.readAllBytes(tempOutputFile)
         } catch (e: Exception) {
             return fileBytes
@@ -198,7 +208,6 @@ object FileStorageRepository {
         }
     }
 
-    // 오디오 최적화 (FFmpeg 사용)
     private fun optimizeAudio(fileBytes: ByteArray, fileName: String): ByteArray {
         val tempInputFile = Files.createTempFile("input_", ".$fileName")
         val tempOutputFile = Files.createTempFile("output_", ".$fileName")
@@ -219,6 +228,8 @@ object FileStorageRepository {
             if (exitCode != 0) {
                 return fileBytes
             }
+
+            logger.info("optimize video success [$fileName]")
 
             return Files.readAllBytes(tempOutputFile)
         } catch (e: Exception) {

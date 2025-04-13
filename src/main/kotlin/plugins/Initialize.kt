@@ -106,7 +106,9 @@ fun pbfDK2Initialize(environment: ApplicationEnvironment) {
 fun fileStorageInitialize(environment: ApplicationEnvironment) {
     try {
         val storageConfig = environment.config.config("storage")
+
         val storageType = storageConfig.propertyOrNull("type")?.getString() ?: "minio"
+        val bucketName = storageConfig.propertyOrNull("bucket")?.getString()
 
         val internalConfig =  when (StorageType.fromString(storageType)) {
             StorageType.MINIO -> storageConfig.config("minio")
@@ -118,7 +120,7 @@ fun fileStorageInitialize(environment: ApplicationEnvironment) {
         val secretKey = internalConfig.propertyOrNull("secretKey")?.getString().toString()
         val region = internalConfig.propertyOrNull("region")?.getString().toString()
 
-        FileStorageRepository.initialize(endpoint, accessKey, secretKey, region, StorageType.fromString(storageType))
+        FileStorageRepository.initialize(bucketName.toString() ,endpoint, accessKey, secretKey, region, StorageType.fromString(storageType))
         environment.log.info("Initialized Storage Service with endpoint: ${endpoint}")
     } catch (e: Exception) {
         throw CustomException(ErrorCode.FAILED_TO_INIT_STORAGE, e.message)

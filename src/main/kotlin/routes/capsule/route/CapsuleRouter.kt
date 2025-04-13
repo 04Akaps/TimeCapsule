@@ -37,10 +37,7 @@ fun Route.v1CapsuleRoute() {
 
             val contentType = ContentType.valueOf(req.contentType)
             if (contentType != ContentType.audio && contentType != ContentType.video && contentType != ContentType.image) {
-                throw CustomException(
-                    ErrorCode.INVALID_CONTENT_TYPE,
-                    "지원되지 않는 콘텐츠 타입입니다. 허용된 타입: audio, video, image"
-                )
+                throw CustomException(ErrorCode.INVALID_CONTENT_TYPE, "지원되지 않는 콘텐츠 타입입니다. 허용된 타입: audio, video, image")
             }
 
             val (fileName, fileData) = FileHandler.handlingIncomingFile(fileItem)

@@ -162,7 +162,6 @@ class CapsuleService(
             var filePath = ""
 
             DatabaseProvider.dbQuery {
-
                 capsuleID = capsuleRepository.createCapsule(userID, title, description, openData)
 
                 timeCapsuleEncryptionMapperRepository.create(capsuleID, encryptedData.encryptedDataKey, encryptedData.timeSalt)
@@ -170,10 +169,10 @@ class CapsuleService(
                 recipientsRepository.create(capsuleID, recipientEmail)
 
                 // File UPload하는 시간이 길어지면, tranasction connection이 계속 열려있는데.. 영속성을 위해서라지만 이게 맞을까? 대용량 트래픽 처리 고민
-                filePath = FileStorageRepository.filePathMaker(userID, fileName, title)
+                filePath = FileStorageRepository.filePathMaker(userID, title, fileName)
 
                 capsuleFileKeyRepository.create(capsuleID, filePath, fileName)
-                FileStorageRepository.uploadFile(userID, file, fileName, filePath)
+                FileStorageRepository.uploadFile(file, fileName, filePath)
             }
 
             return GlobalResponseProvider.new(0, "success", CapsuleCreateResponse(
