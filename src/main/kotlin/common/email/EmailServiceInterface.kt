@@ -6,6 +6,8 @@ interface EmailService {
     fun sendEmail(to: String, subject: String, body: String)
 
     fun shutdown()
+
+    fun storage() : String
 }
 
 class EmailException(message: String, cause: Throwable? = null) :

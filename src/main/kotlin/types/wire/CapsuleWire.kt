@@ -10,5 +10,8 @@ data class CapsuleWire(
     val contentType: String,
     val content: String?,
     val recipientEmail: String,
-    val hasViewed: Boolean
+    val hasViewed: Boolean,
+
+    val filePath : String?,
+    val fileName : String?
 )

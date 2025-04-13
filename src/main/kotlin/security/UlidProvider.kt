@@ -44,4 +44,6 @@ object UlidProvider {
     fun recipientId() = generate("rcp_")
 
     fun timeCapsuleEncryptionMapper() = generate("cem_")
+
+    fun capsuleFilePathMapper() = generate("cam_")
 }

@@ -4,6 +4,7 @@ import com.example.security.UlidProvider
 import com.example.types.storage.*
 import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.leftJoin
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.update
 
@@ -33,6 +34,7 @@ class CapsuleRepository {
         val query = TimeCapsules
             .innerJoin(CapsuleContents, { id }, { CapsuleContents.capsuleId })
             .innerJoin(Recipients, { TimeCapsules.id }, { Recipients.capsuleId })
+            .leftJoin(CapsuleFileKeyMapper, { CapsuleFileKeyMapper.capsuleId }, { Recipients.capsuleId })
             .slice(
                 TimeCapsules.id,
                 TimeCapsules.title,
@@ -44,7 +46,10 @@ class CapsuleRepository {
                 CapsuleContents.content,
 
                 Recipients.recipientEmail,
-                Recipients.hasViewed
+                Recipients.hasViewed,
+
+                CapsuleFileKeyMapper.filePath,
+                CapsuleFileKeyMapper.fileName
             )
             .select { TimeCapsules.id eq capsuleId }
 
@@ -63,7 +68,9 @@ class CapsuleRepository {
             contentType = capsuleRow[CapsuleContents.contentType].name,
             content = capsuleRow[CapsuleContents.content],
             recipientEmail = capsuleRow[Recipients.recipientEmail],
-            hasViewed = capsuleRow[Recipients.hasViewed]
+            hasViewed = capsuleRow[Recipients.hasViewed],
+            filePath = capsuleRow[CapsuleFileKeyMapper.filePath],
+            fileName = capsuleRow[CapsuleFileKeyMapper.fileName],
         )
     }
 

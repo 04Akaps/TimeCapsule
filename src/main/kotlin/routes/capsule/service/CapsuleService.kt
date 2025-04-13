@@ -16,9 +16,6 @@ import com.example.types.response.GlobalResponseProvider
 import com.example.types.storage.CapsuleStatus
 import com.example.types.storage.ContentType
 import com.example.types.wire.CapsuleWire
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.response.respond
 
 
 class CapsuleService(
@@ -27,6 +24,7 @@ class CapsuleService(
     private val capsuleRepository: CapsuleRepository,
     private val userRepository: UserRepository,
     private val timeCapsuleEncryptionMapperRepository: TimeCapsuleEncryptionMapperRepository,
+    private val capsuleFileKeyRepository: CapsuleFileKeyRepository,
     private val emailService: EmailService
 ) {
 
@@ -173,7 +171,9 @@ class CapsuleService(
 
                 // File UPload하는 시간이 길어지면, tranasction connection이 계속 열려있는데.. 영속성을 위해서라지만 이게 맞을까? 대용량 트래픽 처리 고민
                 filePath = FileStorageRepository.filePathMaker(userID, fileName, title)
-                FileStorageRepository.uploadFile(userID, file,fileName, filePath)
+
+                capsuleFileKeyRepository.create(capsuleID, filePath, fileName)
+                FileStorageRepository.uploadFile(userID, file, fileName, filePath)
             }
 
             return GlobalResponseProvider.new(0, "success", CapsuleCreateResponse(

@@ -10,7 +10,7 @@ import com.example.routes.capsule.service.CapsuleService
 import org.koin.dsl.module
 
 import io.ktor.server.application.*
-
+import kotlin.math.sin
 
 
 val additionalModule = module {
@@ -37,6 +37,7 @@ val repositoryModule = module {
     single { CapsuleContentRepository() }
     single { RecipientsRepository() }
     single { TimeCapsuleEncryptionMapperRepository() }
+    single { CapsuleFileKeyRepository(get()) }
 }
 
 var serviceModule = module {

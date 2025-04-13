@@ -8,6 +8,7 @@ import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
+import software.amazon.awssdk.services.ses.SesClient
 
 class JakartaMailService(
     private val host: String,
@@ -20,9 +21,34 @@ class JakartaMailService(
 
     private val logger = LoggerFactory.getLogger(JakartaMailService::class.java)
     private val emailExecutor = Executors.newFixedThreadPool(5)
+    private val session: Session
 
     override fun sendEmail(to: String, subject: String, body: String) {
         sendEmailInternal(to, subject, body)
+    }
+
+    init {
+        val properties = Properties().apply {
+            put("mail.smtp.host", host)
+            put("mail.smtp.port", port)
+            put("mail.smtp.auth", "true")
+
+            // TLS 설정 추가
+            put("mail.smtp.starttls.enable", "true")
+            put("mail.smtp.starttls.required", "true")
+
+            // 디버깅 활성화 (필요시 로그 확인용)
+            put("mail.debug", "true")
+
+            // 추가 보안 설정
+            put("mail.smtp.ssl.protocols", "TLSv1.2")
+        }
+
+        session = Session.getInstance(properties, object : Authenticator() {
+            override fun getPasswordAuthentication(): PasswordAuthentication {
+                return PasswordAuthentication(username, password)
+            }
+        })
     }
 
     override fun shutdown() {
@@ -39,34 +65,16 @@ class JakartaMailService(
         }
     }
 
+    override fun storage() : String {
+        return "jakarta"
+    }
+
     @Throws(EmailException::class)
     private fun sendEmailInternal(
         to: String,
         subject: String,
         body: String,
     ) {
-        val properties = Properties().apply {
-            put("mail.smtp.host", host)
-            put("mail.smtp.port", port)
-            put("mail.smtp.auth", "true")
-            
-            // TLS 설정 추가
-            put("mail.smtp.starttls.enable", "true")
-            put("mail.smtp.starttls.required", "true")
-            
-            // 디버깅 활성화 (필요시 로그 확인용)
-            put("mail.debug", "true")
-            
-            // 추가 보안 설정
-            put("mail.smtp.ssl.protocols", "TLSv1.2")
-        }
-
-        val session = Session.getInstance(properties, object : Authenticator() {
-            override fun getPasswordAuthentication(): PasswordAuthentication {
-                return PasswordAuthentication(username, password)
-            }
-        })
-
         try {
             val message = MimeMessage(session)
             message.setFrom(InternetAddress(fromEmail, fromName))

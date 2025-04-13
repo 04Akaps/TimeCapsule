@@ -54,6 +54,10 @@ class AwsSesService(
         }
     }
 
+    override fun storage() : String {
+        return "aws-ses"
+    }
+
     @Throws(EmailException::class)
     private fun sendEmailInternal(
         to: String,

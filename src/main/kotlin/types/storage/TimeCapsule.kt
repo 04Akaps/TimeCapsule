@@ -30,7 +30,10 @@ data class TimeCapsuleByCapsuleIdStorage(
     val contentType: String,
     val content: String?,
     val recipientEmail: String,
-    val hasViewed: Boolean
+    val hasViewed: Boolean,
+
+    val filePath : String?,
+    val fileName : String?
 ) {
     fun toWire() = CapsuleWire(
         id = id,
@@ -41,6 +44,8 @@ data class TimeCapsuleByCapsuleIdStorage(
         content = content,
         recipientEmail = recipientEmail,
         hasViewed = false,
-        contentType = contentType
+        contentType = contentType,
+        filePath = filePath,
+        fileName = fileName
     )
 }
